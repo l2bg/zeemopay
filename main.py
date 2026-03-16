@@ -1,58 +1,58 @@
 # ============================================================
-# ZEEMO — Phase 5 — Supabase Persistence
+# ZEEMO — Phase 6 — Per-Tool x402 Routing
 # ============================================================
-# All 5 endpoints live here.
-# /health        — server status
-# /register      — developer onboards their tool
-# /pay           — buyer pays and triggers any registered tool
-# /receipt/{id}  — proof of payment
-# /status/{id}   — transaction state
+# All endpoints live here.
+# /health             — server status
+# /register           — developer onboards their tool
+# /pay/{tool_name}    — buyer pays and triggers a specific tool
+# /receipt/{id}       — proof of payment
+# /status/{id}        — transaction state
 # ============================================================
 
-import os                                                    # Reading environment variables
-import uuid                                                  # Generating unique transaction IDs
-import httpx                                                 # Firing HTTP callbacks to developer tools
-from datetime import datetime                                # Timestamping every transaction
-from dotenv import load_dotenv                               # Loading secrets from .env file
-from fastapi import FastAPI, Request, HTTPException          # Core web framework
-from pydantic import BaseModel, HttpUrl                      # Request body validation
-from supabase import create_client, Client                   # Supabase database client
-from x402 import x402ResourceServer                          # x402 payment server
-from x402.http import HTTPFacilitatorClient                  # Connects to Coinbase facilitator
-from x402.http.middleware.fastapi import payment_middleware  # Middleware that guards endpoints
-from x402.mechanisms.evm.exact import ExactEvmServerScheme  # EVM payment scheme
-from cdp import CdpClient                                    # Coinbase CDP SDK
-from cdp.evm_client import TransactionRequestEIP1559         # EIP1559 transaction model
-from eth_abi import encode                                   # ABI encoding for ERC-20 calls
-from web3 import Web3                                        # Address checksum utility
+import os
+import uuid
+import httpx
+from datetime import datetime
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request, HTTPException
+from pydantic import BaseModel, HttpUrl
+from supabase import create_client, Client
+from x402 import x402ResourceServer
+from x402.http import HTTPFacilitatorClient
+from x402.http.middleware.fastapi import payment_middleware
+from x402.mechanisms.evm.exact import ExactEvmServerScheme
+from cdp import CdpClient
+from cdp.evm_client import TransactionRequestEIP1559
+from eth_abi import encode
+from web3 import Web3
 
 # ============================================================
 # LOAD ENVIRONMENT VARIABLES
 # ============================================================
 load_dotenv()
 
-ZEEMO_WALLET    = Web3.to_checksum_address(os.getenv("ZEEMO_WALLET"))
-USDC_CONTRACT   = Web3.to_checksum_address(os.getenv("USDC_CONTRACT"))
-PORT            = int(os.getenv("PORT", 8000))
-ENVIRONMENT     = os.getenv("ENVIRONMENT")
-CDP_API_KEY_ID  = os.getenv("CDP_API_KEY_ID")
+ZEEMO_WALLET       = Web3.to_checksum_address(os.getenv("ZEEMO_WALLET"))
+USDC_CONTRACT      = Web3.to_checksum_address(os.getenv("USDC_CONTRACT"))
+PORT               = int(os.getenv("PORT", 8000))
+ENVIRONMENT        = os.getenv("ENVIRONMENT")
+CDP_API_KEY_ID     = os.getenv("CDP_API_KEY_ID")
 CDP_API_KEY_SECRET = os.getenv("CDP_API_KEY_SECRET")
 CDP_WALLET_SECRET  = os.getenv("CDP_WALLET_SECRET")
-SUPABASE_URL    = os.getenv("SUPABASE_URL")
-SUPABASE_KEY    = os.getenv("SUPABASE_KEY")
+SUPABASE_URL       = os.getenv("SUPABASE_URL")
+SUPABASE_KEY       = os.getenv("SUPABASE_KEY")
 
 # ============================================================
-# INITIALIZE SUPABASE CLIENT
+# INITIALIZE SUPABASE
 # ============================================================
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ============================================================
-# INITIALIZE THE APP
+# INITIALIZE APP
 # ============================================================
-app = FastAPI(title="Zeemo", version="0.2.0")
+app = FastAPI(title="Zeemo", version="0.3.0")
 
 # ============================================================
-# INITIALIZE X402 PAYMENT INFRASTRUCTURE
+# INITIALIZE X402
 # ============================================================
 facilitator = HTTPFacilitatorClient()
 server      = x402ResourceServer(facilitator)
@@ -61,54 +61,61 @@ server.register("eip155:84532", ExactEvmServerScheme())
 # ============================================================
 # X402 DYNAMIC ROUTES
 # ============================================================
-# Loaded from Supabase on startup so routes survive restarts.
-# Updated in memory when new tools register.
+# Each tool gets its own route: POST /pay/{tool_name}
+# This means x402 enforces a different price per tool.
+# Routes are rebuilt from Supabase on every server startup
+# so registered tools survive restarts.
 # ============================================================
 routes = {}
 
-# ============================================================
-# LOAD EXISTING TOOLS INTO ROUTES ON STARTUP
-# ============================================================
-# x402 middleware needs the routes dict populated at startup.
-# Pull all registered tools from Supabase and rebuild routes.
-# ============================================================
-def load_routes_from_db():
-    result = supabase.table("tools").select("*").execute()
-    for tool in result.data:
-        routes[f"POST /pay/{tool['tool_name']}"] = {
-            "accepts": {
-                "scheme": "exact",
-                "payTo": ZEEMO_WALLET,
-                "price": f"${tool['price_per_call']}",
-                "network": "eip155:84532",
-            }
+def build_route(tool_name: str, price_per_call: str) -> dict:
+    return {
+        "accepts": {
+            "scheme":  "exact",
+            "payTo":   ZEEMO_WALLET,
+            "price":   f"${price_per_call}",
+            "network": "eip155:84532",
         }
+    }
+
+def load_routes_from_db():
+    result = supabase.table("tools").select("tool_name, price_per_call").execute()
+    for tool in result.data:
+        routes[f"POST /pay/{tool['tool_name']}"] = build_route(
+            tool["tool_name"], tool["price_per_call"]
+        )
+    print(f"Loaded {len(result.data)} tool routes from Supabase.")
 
 load_routes_from_db()
+
+# ============================================================
+# ATTACH X402 MIDDLEWARE
+# ============================================================
+@app.middleware("http")
+async def x402_middleware(request: Request, call_next):
+    return await payment_middleware(routes, server)(request, call_next)
 
 # ============================================================
 # REQUEST BODY MODELS
 # ============================================================
 class RegisterRequest(BaseModel):
-    wallet_address:  str      # Developer's USDC wallet for payouts
-    tool_name:       str      # Unique identifier for this tool
-    price_per_call:  str      # USDC amount charged per use e.g. "0.50"
-    callback_url:    HttpUrl  # URL Zeemo will POST to when tool is triggered
-    timeout_seconds: int = 10 # How long Zeemo waits for tool response
+    wallet_address:  str
+    tool_name:       str
+    price_per_call:  str
+    callback_url:    HttpUrl
+    timeout_seconds: int = 10
 
 class PayRequest(BaseModel):
-    tool_name:     str   # Which tool the buyer wants to use
-    buyer_payload: dict  # Input data forwarded to the developer tool
+    buyer_payload: dict  # tool_name comes from URL path, not body
 
 # ============================================================
 # USDC TRANSFER HELPER
 # ============================================================
 async def send_usdc(recipient: str, amount_usdc: float) -> str:
-
     amount_units = int(amount_usdc * 1_000_000)
 
     transfer_selector = bytes.fromhex("a9059cbb")
-    encoded_params = encode(
+    encoded_params    = encode(
         ["address", "uint256"],
         [Web3.to_checksum_address(recipient), amount_units]
     )
@@ -140,8 +147,8 @@ async def send_usdc(recipient: str, amount_usdc: float) -> str:
 def health_check():
     result = supabase.table("tools").select("tool_name", count="exact").execute()
     return {
-        "status": "ok",
-        "environment": ENVIRONMENT,
+        "status":           "ok",
+        "environment":      ENVIRONMENT,
         "registered_tools": result.count
     }
 
@@ -151,7 +158,7 @@ def health_check():
 @app.post("/register")
 def register_tool(request: RegisterRequest):
 
-    # Check for duplicate tool name in Supabase
+    # Reject duplicate tool names
     existing = supabase.table("tools") \
         .select("tool_name") \
         .eq("tool_name", request.tool_name) \
@@ -163,9 +170,9 @@ def register_tool(request: RegisterRequest):
             detail=f"Tool '{request.tool_name}' is already registered."
         )
 
-    # Validate callback URL is reachable right now
+    # Validate callback URL is reachable
     try:
-        probe = httpx.get(str(request.callback_url), timeout=5.0)
+        httpx.get(str(request.callback_url), timeout=5.0)
     except httpx.RequestError:
         raise HTTPException(
             status_code=400,
@@ -174,7 +181,7 @@ def register_tool(request: RegisterRequest):
 
     applied_timeout = min(request.timeout_seconds, 30)
 
-    # Persist tool to Supabase
+    # Persist to Supabase
     supabase.table("tools").insert({
         "tool_name":       request.tool_name,
         "wallet_address":  request.wallet_address,
@@ -184,30 +191,29 @@ def register_tool(request: RegisterRequest):
         "registered_at":   datetime.utcnow().isoformat()
     }).execute()
 
-    # Update x402 routes in memory
-    routes[f"POST /pay/{request.tool_name}"] = {
-        "accepts": {
-            "scheme": "exact",
-            "payTo": ZEEMO_WALLET,
-            "price": f"${request.price_per_call}",
-            "network": "eip155:84532",
-        }
-    }
+    # Register per-tool x402 route in memory immediately
+    routes[f"POST /pay/{request.tool_name}"] = build_route(
+        request.tool_name, request.price_per_call
+    )
 
     return {
-        "status": "registered",
-        "tool_name": request.tool_name,
-        "price_per_call": request.price_per_call,
-        "callback_url": str(request.callback_url),
+        "status":          "registered",
+        "tool_name":       request.tool_name,
+        "price_per_call":  request.price_per_call,
+        "callback_url":    str(request.callback_url),
         "timeout_seconds": applied_timeout,
-        "warning": ("Timeout capped at 30s." if request.timeout_seconds > 30 else None)
+        "pay_endpoint":    f"/pay/{request.tool_name}",
+        "warning":         ("Timeout capped at 30s." if request.timeout_seconds > 30 else None)
     }
 
 # ============================================================
 # ENDPOINT 3 — PAY AND TRIGGER TOOL
 # ============================================================
-@app.post("/pay")
-async def pay(request: PayRequest):
+# tool_name is in the URL path — each tool has its own
+# x402-protected route with its own price. Bug fixed.
+# ============================================================
+@app.post("/pay/{tool_name}")
+async def pay(tool_name: str, request: PayRequest):
 
     transaction_id = str(uuid.uuid4())
     timestamp      = datetime.utcnow().isoformat()
@@ -215,21 +221,21 @@ async def pay(request: PayRequest):
     # Look up tool from Supabase
     result = supabase.table("tools") \
         .select("*") \
-        .eq("tool_name", request.tool_name) \
+        .eq("tool_name", tool_name) \
         .execute()
 
     if not result.data:
         raise HTTPException(
             status_code=404,
-            detail=f"Tool '{request.tool_name}' is not registered."
+            detail=f"Tool '{tool_name}' is not registered."
         )
 
     tool = result.data[0]
 
-    # Write pending transaction to Supabase
+    # Write pending transaction
     supabase.table("transactions").insert({
         "transaction_id": transaction_id,
-        "tool_name":      request.tool_name,
+        "tool_name":      tool_name,
         "status":         "pending",
         "timestamp":      timestamp
     }).execute()
@@ -250,7 +256,7 @@ async def pay(request: PayRequest):
             .execute()
         raise HTTPException(
             status_code=502,
-            detail=f"Tool '{request.tool_name}' timed out. Payment not charged."
+            detail=f"Tool '{tool_name}' timed out. Payment not charged."
         )
     except httpx.RequestError as e:
         supabase.table("transactions") \
@@ -259,17 +265,17 @@ async def pay(request: PayRequest):
             .execute()
         raise HTTPException(
             status_code=502,
-            detail=f"Tool '{request.tool_name}' unreachable. Payment not charged."
+            detail=f"Tool '{tool_name}' unreachable. Payment not charged."
         )
 
     # Execute split
     price         = float(tool["price_per_call"])
-    developer_cut = price * 0.95
-    zeemo_cut     = price * 0.05
+    developer_cut = round(price * 0.95, 6)
+    zeemo_cut     = round(price * 0.05, 6)
 
     tx_hash = await send_usdc(tool["wallet_address"], developer_cut)
 
-    # Write completed receipt to Supabase
+    # Write completed receipt
     supabase.table("transactions").update({
         "status":           "completed",
         "price_usdc":       price,
@@ -284,10 +290,10 @@ async def pay(request: PayRequest):
 
     return {
         "transaction_id": transaction_id,
-        "result": tool_response.json(),
+        "result":         tool_response.json(),
         "receipt": {
             "transaction_id":   transaction_id,
-            "tool_name":        request.tool_name,
+            "tool_name":        tool_name,
             "status":           "completed",
             "timestamp":        timestamp,
             "price_usdc":       price,
@@ -304,7 +310,6 @@ async def pay(request: PayRequest):
 # ============================================================
 @app.get("/receipt/{transaction_id}")
 def get_receipt(transaction_id: str):
-
     result = supabase.table("transactions") \
         .select("*") \
         .eq("transaction_id", transaction_id) \
@@ -322,7 +327,6 @@ def get_receipt(transaction_id: str):
 # ============================================================
 @app.get("/status/{transaction_id}")
 def get_status(transaction_id: str):
-
     result = supabase.table("transactions") \
         .select("transaction_id, status, timestamp") \
         .eq("transaction_id", transaction_id) \
