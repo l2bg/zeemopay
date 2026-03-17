@@ -3,594 +3,665 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zeemo — Monetize Your API for the AI Agent Economy</title>
+<title>ReqCast | Payment Infrastructure for AI Tools</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Familjen+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --ink:     #0e0e0e;
-  --paper:   #f7f4ee;
-  --cream:   #ede9e0;
-  --green:   #1d6b3e;
-  --green-l: #e8f5ee;
-  --muted:   #888880;
-  --border:  #dedad2;
-  --red:     #c0392b;
+  --bg:        #0a0f0a;
+  --bg2:       #0e1510;
+  --bg3:       #111a12;
+  --surface:   #141f15;
+  --border:    #1e2e1f;
+  --green:     #22c55e;
+  --green-bg:  #0d1f0e;
+  --text:      #f0f4f0;
+  --text2:     #8fa98f;
+  --text3:     #4a634a;
 }
 
 html { scroll-behavior: smooth; }
 
 body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: 'Familjen Grotesk', sans-serif;
-  font-size: 15px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 16px;
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-}
-
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 999;
 }
 
 nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 56px;
+  padding: 0 64px;
+  height: 68px;
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  background: rgba(247,244,238,0.94);
-  backdrop-filter: blur(10px);
+  background: rgba(10,15,10,0.92);
+  backdrop-filter: blur(16px);
   z-index: 100;
 }
 
 .logo {
-  font-family: 'Instrument Serif', serif;
-  font-size: 26px;
-  color: var(--ink);
+  font-size: 20px;
+  font-weight: 700;
   letter-spacing: -0.5px;
-}
-
-.logo sup {
-  font-family: 'Familjen Grotesk', sans-serif;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--green);
-  vertical-align: super;
-  text-transform: uppercase;
-}
-
-.nav-links { display: flex; gap: 32px; align-items: center; }
-
-nav a {
-  color: var(--muted);
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-nav a:hover { color: var(--ink); }
-
-.nav-cta {
-  background: var(--ink) !important;
-  color: var(--paper) !important;
-  padding: 9px 22px;
-  font-weight: 700 !important;
-}
-
-/* HERO */
-.hero {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 96px 56px 80px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 80px;
+  color: #fff;
+  display: flex;
   align-items: center;
+  gap: 10px;
 }
 
-.hero-left { animation: fadeUp 0.7s ease both; }
-
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--green);
-  margin-bottom: 28px;
-}
-
-.eyebrow::before {
-  content: '';
-  width: 6px;
-  height: 6px;
+.logo-dot {
+  width: 8px;
+  height: 8px;
   background: var(--green);
   border-radius: 50%;
-  animation: pulse 2s infinite;
+  animation: blink 2.5s ease infinite;
 }
 
-@keyframes pulse {
+@keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
 
-h1 {
-  font-family: 'Instrument Serif', serif;
-  font-size: clamp(40px, 4.5vw, 62px);
-  line-height: 1.05;
-  letter-spacing: -1.5px;
-  margin-bottom: 24px;
+.nav-links { display: flex; align-items: center; gap: 36px; }
+
+nav a {
+  color: var(--text2);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.15s;
 }
 
-h1 em { font-style: italic; color: var(--green); }
+nav a:hover { color: var(--text); }
+
+.nav-btn {
+  background: var(--green) !important;
+  color: #000 !important;
+  padding: 9px 20px;
+  font-weight: 600 !important;
+  border-radius: 6px;
+}
+
+.nav-btn:hover { background: #16c251 !important; }
+
+.hero {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 100px 64px 80px;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.hero-left { animation: fadeUp 0.5s ease both; }
+
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--green-bg);
+  border: 1px solid rgba(34,197,94,0.2);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 100px;
+  margin-bottom: 32px;
+}
+
+h1 {
+  font-size: clamp(40px, 4.8vw, 64px);
+  font-weight: 700;
+  letter-spacing: -2px;
+  line-height: 1.05;
+  color: #fff;
+  margin-bottom: 24px;
+  animation: fadeUp 0.5s 0.08s ease both;
+}
+
+h1 .accent { color: var(--green); }
 
 .hero-sub {
-  font-size: 16px;
-  color: #555;
-  line-height: 1.75;
-  margin-bottom: 40px;
-  max-width: 440px;
+  font-size: 18px;
+  color: var(--text2);
+  line-height: 1.7;
+  margin-bottom: 44px;
+  max-width: 480px;
+  animation: fadeUp 0.5s 0.16s ease both;
 }
 
-.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-btns {
+  display: flex;
+  gap: 12px;
+  animation: fadeUp 0.5s 0.24s ease both;
+}
 
-.btn-primary {
-  background: var(--ink);
-  color: var(--paper);
+.btn-green {
+  background: var(--green);
+  color: #000;
   padding: 14px 28px;
-  font-family: 'Familjen Grotesk', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
   border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
-  transition: background 0.2s, transform 0.15s;
+  transition: background 0.15s, transform 0.1s;
 }
 
-.btn-primary:hover { background: #333; transform: translateY(-1px); }
+.btn-green:hover { background: #16c251; transform: translateY(-1px); }
 
-.btn-ghost {
-  border: 1.5px solid var(--border);
-  color: var(--muted);
-  padding: 13px 28px;
-  font-family: 'Familjen Grotesk', sans-serif;
-  font-size: 14px;
+.btn-outline {
+  background: transparent;
+  color: var(--text2);
+  padding: 14px 28px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
   font-weight: 500;
   text-decoration: none;
   display: inline-block;
-  transition: border-color 0.2s, color 0.2s;
+  transition: border-color 0.15s, color 0.15s;
 }
 
-.btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+.btn-outline:hover { border-color: var(--text3); color: var(--text); }
 
-/* DIAGRAM */
-.hero-right { animation: fadeUp 0.7s 0.15s ease both; }
-
-.agent-diagram {
-  background: var(--ink);
-  padding: 36px;
+.hero-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  animation: fadeUp 0.5s 0.2s ease both;
 }
 
-.diagram-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
+.hc-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #444;
-  margin-bottom: 24px;
+  color: var(--text3);
+  margin-bottom: 20px;
 }
 
-.agent-row {
+.hc-flow {
   display: flex;
   align-items: center;
-  margin-bottom: 6px;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
 }
 
-.agent-box {
-  background: #1a1a1a;
-  border: 1px solid #252525;
-  padding: 12px 16px;
+.hc-node {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
   font-size: 12px;
   font-weight: 500;
-  color: #999;
-  flex: 1;
-  text-align: center;
+  color: var(--text2);
 }
 
-.agent-box.hi { background: #1c2e22; border-color: #2a4a32; color: #5dba80; }
-.agent-box.ze { background: var(--green); border-color: #2a8a50; color: #fff; font-weight: 700; font-size: 13px; }
+.hc-node.active {
+  background: rgba(34,197,94,0.08);
+  border-color: rgba(34,197,94,0.25);
+  color: var(--green);
+}
 
-.arr { color: #2a4a32; font-size: 16px; padding: 0 8px; flex-shrink: 0; }
+.hc-arrow { color: var(--text3); font-size: 14px; flex-shrink: 0; }
 
-.diagram-divider { border: none; border-top: 1px solid #1a1a1a; margin: 16px 0; }
+.hc-stats { display: flex; flex-direction: column; gap: 10px; }
 
-.d-stat {
+.hc-stat {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 9px 0;
-  border-bottom: 1px solid #161616;
+  padding: 10px 12px;
+  background: var(--bg3);
+  border-radius: 6px;
+  font-size: 13px;
 }
 
-.d-stat:last-child { border-bottom: none; }
-.ds-l { font-size: 11px; color: #444; }
-.ds-v { font-size: 12px; font-weight: 600; color: #5dba80; }
+.hc-stat-label { color: var(--text3); }
+.hc-stat-value { color: var(--green); font-weight: 600; }
 
-/* BAND */
 .band {
-  background: var(--ink);
-  padding: 18px 56px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 0;
+  overflow: hidden;
+}
+
+.band-track {
   display: flex;
   gap: 48px;
-  overflow: hidden;
-  border-top: 1px solid #1a1a1a;
+  animation: scroll 25s linear infinite;
+  width: max-content;
 }
 
 .band-item {
   display: flex;
-  gap: 10px;
   align-items: center;
+  gap: 8px;
   white-space: nowrap;
   font-size: 12px;
   font-weight: 500;
-  color: #444;
+  color: var(--text3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.band-item strong { color: #5dba80; }
+.band-item span { color: var(--green); font-weight: 600; }
 
-/* SECTIONS */
-.sec {
-  max-width: 1080px;
+@keyframes scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.section {
+  max-width: 1120px;
   margin: 0 auto;
-  padding: 96px 56px;
+  padding: 96px 64px;
 }
 
-.sec-header {
-  display: flex;
-  align-items: baseline;
-  gap: 20px;
+.section-eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 16px;
+}
+
+h2 {
+  font-size: clamp(28px, 3vw, 44px);
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+.section-sub {
+  font-size: 17px;
+  color: var(--text2);
+  line-height: 1.7;
+  max-width: 560px;
   margin-bottom: 56px;
 }
 
-.sec-num {
-  font-family: 'Instrument Serif', serif;
-  font-size: 80px;
-  color: var(--border);
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.sec-title {
-  font-family: 'Instrument Serif', serif;
-  font-size: clamp(28px, 3vw, 42px);
-  letter-spacing: -0.5px;
-  line-height: 1.1;
-}
-
-/* PLAYERS */
 .players-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--border);
+  gap: 16px;
+}
+
+.player {
+  background: var(--surface);
   border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px 28px;
+  transition: border-color 0.2s;
 }
 
-.player-card {
-  background: var(--paper);
-  padding: 40px 32px;
-  transition: background 0.2s;
-}
+.player:hover { border-color: rgba(34,197,94,0.3); }
 
-.player-card:hover { background: var(--cream); }
+.player-num {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
 
 .player-icon {
-  width: 44px;
-  height: 44px;
-  background: var(--ink);
-  color: var(--paper);
+  width: 48px;
+  height: 48px;
+  background: var(--green-bg);
+  border: 1px solid rgba(34,197,94,0.15);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  margin-bottom: 24px;
-  font-weight: 700;
+  font-size: 22px;
+  margin-bottom: 20px;
 }
 
-.player-role {
-  font-size: 10px;
+.player-title {
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-
-.player-name {
-  font-family: 'Instrument Serif', serif;
-  font-size: 24px;
   letter-spacing: -0.3px;
-  margin-bottom: 14px;
+  color: #fff;
+  margin-bottom: 12px;
 }
 
-.player-desc { font-size: 13px; color: #666; line-height: 1.75; }
+.player-desc {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.75;
+  margin-bottom: 20px;
+}
 
-.player-pain {
-  margin-top: 20px;
-  padding: 14px 16px;
-  background: var(--cream);
-  border-left: 3px solid var(--border);
-  font-size: 12px;
-  color: var(--muted);
+.player-quote {
+  font-size: 13px;
+  color: var(--text3);
   font-style: italic;
   line-height: 1.6;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
 }
 
-.zeemo-card .player-pain {
-  background: var(--green-l);
-  border-left-color: var(--green);
+.player.reqcast-player .player-quote {
   color: var(--green);
   font-style: normal;
-  font-weight: 600;
+  font-weight: 500;
 }
 
-/* FLOW */
 .flow-bg {
-  background: var(--ink);
-  padding: 96px 56px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
-.flow-inner { max-width: 1080px; margin: 0 auto; }
-.flow-bg .sec-num { color: #1a1a1a; }
-.flow-bg .sec-title { color: var(--paper); }
-.flow-bg .sec-header { margin-bottom: 64px; }
-
-.flow-steps {
+.flow-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 0;
+  margin-top: 56px;
 }
 
 .flow-step {
-  padding: 0 24px;
-  border-right: 1px solid #1a1a1a;
+  padding: 0 28px;
+  border-right: 1px solid var(--border);
 }
 
 .flow-step:first-child { padding-left: 0; }
 .flow-step:last-child { border-right: none; padding-right: 0; }
 
-.fs-n {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  color: #2a2a2a;
+.fs-num {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
   margin-bottom: 16px;
 }
 
 .fs-icon {
-  width: 40px;
-  height: 40px;
-  border: 1px solid #1e1e1e;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 18px;
   margin-bottom: 20px;
   font-weight: 700;
-  color: #555;
-  font-family: 'Familjen Grotesk', sans-serif;
+  color: var(--text2);
+  font-family: 'Inter', sans-serif;
 }
 
-.flow-step.active .fs-icon {
-  background: var(--green);
-  border-color: var(--green);
-  color: #fff;
+.flow-step.highlight .fs-icon {
+  background: rgba(34,197,94,0.1);
+  border-color: rgba(34,197,94,0.3);
+  color: var(--green);
 }
 
 .fs-title {
-  font-family: 'Instrument Serif', serif;
-  font-size: 17px;
-  color: var(--paper);
-  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 8px;
 }
 
-.fs-desc { font-size: 11px; color: #555; line-height: 1.75; }
-.fs-desc code { color: #5dba80; font-size: 10px; }
+.fs-desc {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.7;
+}
 
-/* SPLIT */
-.split-wrap {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 96px 56px;
+.fs-desc code {
+  color: var(--green);
+  font-size: 12px;
+  background: var(--green-bg);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.split-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 80px;
   align-items: center;
 }
 
-.split-desc { font-size: 15px; color: #666; line-height: 1.75; margin-bottom: 36px; }
-
-.split-track {
-  height: 8px;
-  background: var(--border);
-  position: relative;
-  margin: 28px 0 16px;
+.split-bar {
+  height: 6px;
+  background: var(--surface);
+  border-radius: 100px;
+  margin: 32px 0 8px;
 }
 
 .split-fill {
-  position: absolute;
-  left: 0; top: 0;
   height: 100%;
   width: 95%;
   background: var(--green);
+  border-radius: 100px;
 }
 
-.split-pct {
+.split-labels {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
 }
 
-.split-pct .g { color: var(--green); }
-.split-pct .m { color: var(--muted); }
+.split-labels .g { color: var(--green); }
+.split-labels .m { color: var(--text3); }
 
-.earn-table {
+.split-nums {
+  display: flex;
+  gap: 32px;
+  margin-top: 36px;
+}
+
+.split-num { padding-top: 16px; border-top: 2px solid var(--border); }
+.split-num.green { border-top-color: var(--green); }
+
+.sn-val {
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -2px;
+  color: var(--text3);
+  line-height: 1;
+}
+
+.split-num.green .sn-val { color: var(--green); }
+
+.sn-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 6px;
+}
+
+.earnings {
+  background: var(--surface);
   border: 1px solid var(--border);
-  margin-top: 8px;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-.et-row {
+.earn-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   border-bottom: 1px solid var(--border);
   transition: background 0.15s;
 }
 
-.et-row:last-child { border-bottom: none; }
-.et-row:hover { background: var(--cream); }
-.et-row.head { background: var(--ink); }
-.et-row.head:hover { background: var(--ink); }
+.earn-row:last-child { border-bottom: none; }
+.earn-row:not(.earn-head):hover { background: var(--bg3); }
+.earn-head { background: var(--bg3); }
 
-.et-cell {
-  padding: 13px 18px;
-  font-size: 13px;
+.earn-cell {
+  padding: 14px 20px;
+  font-size: 14px;
+  color: var(--text2);
   border-right: 1px solid var(--border);
 }
 
-.et-cell:last-child { border-right: none; }
-.et-row.head .et-cell { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #555; }
+.earn-cell:last-child { border-right: none; }
 
-.earn { color: var(--green); font-weight: 700; font-size: 15px; }
+.earn-head .earn-cell {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
 
-/* CODE */
+.earn-val { color: var(--green); font-weight: 700; font-size: 16px; }
+
 .code-bg {
-  background: var(--cream);
+  background: var(--bg2);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  padding: 96px 56px;
 }
 
-.code-inner { max-width: 1080px; margin: 0 auto; }
-
-.code-grid {
+.code-layout {
   display: grid;
-  grid-template-columns: 1fr 1.5fr;
-  gap: 56px;
-  align-items: start;
+  grid-template-columns: 280px 1fr;
+  gap: 40px;
   margin-top: 56px;
+  align-items: start;
 }
 
-.step-list { list-style: none; }
+.code-steps { display: flex; flex-direction: column; gap: 4px; }
 
-.step-item {
+.code-step {
   display: flex;
-  gap: 18px;
-  padding: 18px 0;
-  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: background 0.15s;
 }
 
-.step-item:first-child { padding-top: 0; }
-.step-item:last-child { border-bottom: none; }
-.step-item.dim { opacity: 0.35; }
+.code-step:hover { background: var(--surface); }
+.code-step.active { background: var(--surface); }
 
-.s-badge {
-  width: 28px;
-  height: 28px;
-  background: var(--ink);
-  color: var(--paper);
+.cs-num {
+  width: 26px;
+  height: 26px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
+  color: var(--text3);
   flex-shrink: 0;
 }
 
-.step-item.dim .s-badge { background: var(--border); color: var(--muted); }
+.code-step.active .cs-num {
+  background: var(--green);
+  border-color: var(--green);
+  color: #000;
+}
 
-.s-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
-.s-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.cs-title { font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 3px; }
+.code-step.active .cs-title { color: #fff; }
+.cs-desc { font-size: 12px; color: var(--text3); line-height: 1.5; }
 
 .code-panel {
-  background: var(--ink);
-  padding: 28px 32px;
+  background: #0b0f0b;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-.cp-tab {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #5dba80;
-  margin-bottom: 18px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #1a1a1a;
+.cp-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
 }
+
+.cp-dot { width: 10px; height: 10px; border-radius: 50%; }
+.cp-dot:nth-child(1) { background: #ff5f57; }
+.cp-dot:nth-child(2) { background: #ffbd2e; }
+.cp-dot:nth-child(3) { background: #28c840; }
+
+.cp-title { margin-left: 8px; font-size: 12px; font-weight: 500; color: var(--text3); }
+.cp-body { padding: 28px 32px; overflow-x: auto; }
 
 pre {
-  font-family: 'Familjen Grotesk', monospace;
-  font-size: 12px;
-  line-height: 1.9;
-  color: #666;
-  overflow-x: auto;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.85;
+  color: #6b8f6b;
 }
 
-.cg { color: #5dba80; }
+.cg { color: #22c55e; }
 .cy { color: #d4a847; }
-.cb { color: #6db3f2; }
-.cm { color: #3a3a3a; }
-.cw { color: #aaa; }
+.cb { color: #60a8d4; }
+.cm { color: #3a5a3a; }
+.cw { color: #b0c8b0; }
 
-/* REGISTER */
-.reg-wrap {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 96px 56px;
+.register-layout {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
+  grid-template-columns: 1fr 1.1fr;
   gap: 80px;
   align-items: start;
 }
 
-.reg-left p { font-size: 14px; color: #666; line-height: 1.75; margin: 20px 0 32px; }
+.reg-desc { font-size: 16px; color: var(--text2); line-height: 1.75; margin: 20px 0 36px; }
 
 .checklist { list-style: none; }
 
 .checklist li {
   display: flex;
-  gap: 12px;
   align-items: flex-start;
-  font-size: 13px;
-  color: #555;
-  padding: 10px 0;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text2);
+  padding: 12px 0;
   border-bottom: 1px solid var(--border);
 }
 
 .checklist li:last-child { border-bottom: none; }
 
-.ck-icon {
-  width: 18px;
-  height: 18px;
-  background: var(--green-l);
-  border: 1px solid #b8dfc8;
+.ck {
+  width: 20px;
+  height: 20px;
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.25);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -600,319 +671,339 @@ pre {
   margin-top: 1px;
 }
 
-.form-box {
-  background: var(--cream);
+.form-card {
+  background: var(--surface);
   border: 1px solid var(--border);
-  padding: 40px;
+  border-radius: 16px;
+  padding: 36px;
 }
 
-.form-box-title {
-  font-family: 'Instrument Serif', serif;
+.form-card-title {
   font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #fff;
   margin-bottom: 28px;
-  letter-spacing: -0.3px;
 }
 
-.fg { margin-bottom: 18px; }
+.fg { margin-bottom: 16px; }
 
 label {
   display: block;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text2);
   margin-bottom: 6px;
 }
 
 input {
   width: 100%;
-  background: var(--paper);
-  border: 1.5px solid var(--border);
-  color: var(--ink);
-  font-family: 'Familjen Grotesk', sans-serif;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   padding: 11px 14px;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.15s;
 }
 
-input:focus { border-color: var(--ink); }
-input::placeholder { color: #ccc; }
+input:focus { border-color: rgba(34,197,94,0.5); }
+input::placeholder { color: var(--text3); }
 
-.fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .submit-btn {
   width: 100%;
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--green);
+  color: #000;
   border: none;
-  font-family: 'Familjen Grotesk', sans-serif;
-  font-size: 14px;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
   font-weight: 700;
-  padding: 16px;
+  padding: 14px;
   cursor: pointer;
   margin-top: 4px;
-  transition: background 0.2s;
-  letter-spacing: 0.02em;
+  transition: background 0.15s, transform 0.1s;
 }
 
-.submit-btn:hover { background: #333; }
-.submit-btn:disabled { background: #ccc; cursor: not-allowed; }
+.submit-btn:hover { background: #16c251; transform: translateY(-1px); }
+.submit-btn:disabled { background: var(--text3); cursor: not-allowed; transform: none; }
 
 .form-result {
   margin-top: 16px;
-  padding: 16px 18px;
+  padding: 14px 16px;
+  border-radius: 8px;
   font-size: 13px;
   line-height: 1.7;
   display: none;
-  border: 1.5px solid var(--border);
 }
 
-.form-result.success { border-color: #b8dfc8; background: var(--green-l); color: var(--green); }
-.form-result.error { border-color: #f5c6c2; background: #fdf0ef; color: var(--red); }
+.form-result.success {
+  background: rgba(34,197,94,0.08);
+  border: 1px solid rgba(34,197,94,0.2);
+  color: var(--green);
+}
 
-/* FOOTER */
+.form-result.error {
+  background: rgba(192,57,43,0.08);
+  border: 1px solid rgba(192,57,43,0.2);
+  color: #f87171;
+}
+
 footer {
-  background: var(--ink);
-  padding: 44px 56px;
+  border-top: 1px solid var(--border);
+  padding: 44px 64px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.footer-logo { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--paper); }
-.footer-links { display: flex; gap: 28px; }
-.footer-links a { color: #444; font-size: 13px; text-decoration: none; transition: color 0.2s; }
-.footer-links a:hover { color: #888; }
-.footer-note { font-size: 11px; color: #333; }
+.footer-logo {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-/* ANIM */
+.footer-links { display: flex; gap: 28px; }
+.footer-links a { color: var(--text3); font-size: 13px; text-decoration: none; transition: color 0.15s; }
+.footer-links a:hover { color: var(--text2); }
+.footer-note { font-size: 12px; color: var(--text3); }
+
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 .reveal {
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transform: translateY(16px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
 }
 
 .reveal.visible { opacity: 1; transform: translateY(0); }
 
-@media (max-width: 900px) {
-  nav { padding: 20px 24px; }
-  .hero, .sec, .split-wrap, .reg-wrap, .code-bg, .flow-bg { padding-left: 24px; padding-right: 24px; }
-  .hero, .split-wrap, .reg-wrap { grid-template-columns: 1fr; gap: 48px; }
-  .players-grid, .flow-steps { grid-template-columns: 1fr; }
-  .flow-step { border-right: none; border-bottom: 1px solid #1a1a1a; padding: 24px 0; }
-  .code-grid { grid-template-columns: 1fr; }
+@media (max-width: 960px) {
+  nav { padding: 0 24px; }
+  .hero, .section, footer { padding-left: 24px; padding-right: 24px; }
+  .hero, .split-layout, .register-layout { grid-template-columns: 1fr; gap: 48px; }
+  .players-grid { grid-template-columns: 1fr; }
+  .flow-grid { grid-template-columns: 1fr 1fr; }
+  .flow-step { border-right: none; padding: 0 0 24px; border-bottom: 1px solid var(--border); }
+  .code-layout { grid-template-columns: 1fr; }
   .fg-row { grid-template-columns: 1fr; }
-  .band { padding: 18px 24px; gap: 32px; overflow-x: auto; }
-  footer { flex-direction: column; gap: 20px; text-align: center; padding: 36px 24px; }
 }
 </style>
 </head>
 <body>
 
 <nav>
-  <div class="logo">Zeemo <sup>testnet</sup></div>
+  <div class="logo"><div class="logo-dot"></div>ReqCast</div>
   <div class="nav-links">
-    <a href="#players">How it works</a>
-    <a href="#integrate">Integrate</a>
-    <a href="#register" class="nav-cta">Register your tool →</a>
+    <a href="#how-it-works">How it works</a>
+    <a href="#integrate">Docs</a>
+    <a href="#register" class="nav-btn">Register your tool</a>
   </div>
 </nav>
 
-<!-- HERO -->
 <section class="hero">
   <div class="hero-left">
-    <div class="eyebrow">Live on Base Sepolia</div>
-    <h1>Your API,<br>paid by <em>AI agents</em><br>automatically.</h1>
-    <p class="hero-sub">
-      AI agents can't use credit cards. They have wallets. Zeemo lets your tool accept autonomous USDC payments from AI agents — without you writing a single line of payment code.
-    </p>
-    <div class="hero-actions">
-      <a href="#register" class="btn-primary">Register your tool free</a>
-      <a href="#players" class="btn-ghost">See how it works</a>
+    <div class="hero-tag">Live on Base Sepolia Testnet</div>
+    <h1>Your API,<br>paid by <span class="accent">AI agents</span><br>automatically.</h1>
+    <p class="hero-sub">AI agents cannot use credit cards. They use wallets. ReqCast lets your tool collect autonomous USDC payments from AI agents without writing a single line of payment code.</p>
+    <div class="hero-btns">
+      <a href="#register" class="btn-green">Register your tool</a>
+      <a href="#how-it-works" class="btn-outline">See how it works</a>
     </div>
   </div>
 
-  <div class="hero-right">
-    <div class="agent-diagram">
-      <div class="diagram-label">Live transaction flow</div>
-      <div class="agent-row">
-        <div class="agent-box hi">🤖 AI Agent</div>
-        <div class="arr">→</div>
-        <div class="agent-box ze">Zeemo</div>
-        <div class="arr">→</div>
-        <div class="agent-box hi">⚡ Your Tool</div>
-      </div>
-      <hr class="diagram-divider">
-      <div class="d-stat"><span class="ds-l">Agent pays</span><span class="ds-v">USDC via x402</span></div>
-      <div class="d-stat"><span class="ds-l">Zeemo verifies on-chain</span><span class="ds-v">&lt; 1 second</span></div>
-      <div class="d-stat"><span class="ds-l">Your tool fires</span><span class="ds-v">Callback triggered</span></div>
-      <div class="d-stat"><span class="ds-l">You receive</span><span class="ds-v">95% instantly</span></div>
-      <div class="d-stat"><span class="ds-l">Payment code you write</span><span class="ds-v">Zero lines</span></div>
+  <div class="hero-card">
+    <div class="hc-label">Live transaction flow</div>
+    <div class="hc-flow">
+      <div class="hc-node active">🤖 AI Agent</div>
+      <div class="hc-arrow">→</div>
+      <div class="hc-node active" style="background:rgba(34,197,94,0.12);border-color:rgba(34,197,94,0.35);font-weight:700;">ReqCast</div>
+      <div class="hc-arrow">→</div>
+      <div class="hc-node active">⚡ Your Tool</div>
+    </div>
+    <div class="hc-stats">
+      <div class="hc-stat"><span class="hc-stat-label">Agent pays</span><span class="hc-stat-value">USDC via x402</span></div>
+      <div class="hc-stat"><span class="hc-stat-label">Verified on-chain</span><span class="hc-stat-value">Under 1 second</span></div>
+      <div class="hc-stat"><span class="hc-stat-label">Your callback fires</span><span class="hc-stat-value">Automatic</span></div>
+      <div class="hc-stat"><span class="hc-stat-label">You receive</span><span class="hc-stat-value">95% instantly</span></div>
+      <div class="hc-stat"><span class="hc-stat-label">Payment code you write</span><span class="hc-stat-value">Zero lines</span></div>
     </div>
   </div>
 </section>
 
 <div class="band">
-  <div class="band-item"><strong>95%</strong> to developers</div>
-  <div class="band-item"><strong>USDC</strong> on Base</div>
-  <div class="band-item"><strong>x402</strong> protocol</div>
-  <div class="band-item"><strong>Instant</strong> on-chain payouts</div>
-  <div class="band-item"><strong>Zero</strong> payment code</div>
-  <div class="band-item"><strong>Tamper-evident</strong> receipts</div>
-  <div class="band-item"><strong>Per-tool</strong> pricing</div>
-  <div class="band-item"><strong>Supabase</strong> backed</div>
+  <div class="band-track">
+    <div class="band-item"><span>95%</span> to developers</div>
+    <div class="band-item"><span>USDC</span> on Base</div>
+    <div class="band-item"><span>x402</span> protocol</div>
+    <div class="band-item"><span>Instant</span> on-chain payouts</div>
+    <div class="band-item"><span>Zero</span> payment code</div>
+    <div class="band-item"><span>Tamper-evident</span> receipts</div>
+    <div class="band-item"><span>Per-tool</span> pricing</div>
+    <div class="band-item"><span>Coinbase</span> CDP</div>
+    <div class="band-item"><span>95%</span> to developers</div>
+    <div class="band-item"><span>USDC</span> on Base</div>
+    <div class="band-item"><span>x402</span> protocol</div>
+    <div class="band-item"><span>Instant</span> on-chain payouts</div>
+    <div class="band-item"><span>Zero</span> payment code</div>
+    <div class="band-item"><span>Tamper-evident</span> receipts</div>
+    <div class="band-item"><span>Per-tool</span> pricing</div>
+    <div class="band-item"><span>Coinbase</span> CDP</div>
+  </div>
 </div>
 
-<!-- THREE PLAYERS -->
-<section class="sec" id="players">
-  <div class="sec-header reveal">
-    <div class="sec-num">01</div>
-    <h2 class="sec-title">Three players.<br>One infrastructure.</h2>
+<section class="section" id="how-it-works">
+  <div class="reveal">
+    <div class="section-eyebrow">How it works</div>
+    <h2>Three players.<br>One infrastructure.</h2>
+    <p class="section-sub">ReqCast sits between AI agents and the tools they need to call. It handles all payment verification, splits and receipts so neither side has to build any of it.</p>
   </div>
 
   <div class="players-grid reveal">
-    <div class="player-card">
+    <div class="player">
+      <div class="player-num">Player 01</div>
       <div class="player-icon">⚡</div>
-      <div class="player-role">Player 1 — Your customer</div>
-      <div class="player-name">Tool Developer</div>
-      <div class="player-desc">
-        You. You built an API, an LLM wrapper, a data tool, a specialized service. You want to charge per call and get paid instantly — without becoming a payment infrastructure engineer.
-      </div>
-      <div class="player-pain">"I just want to monetize my tool. I don't want to touch wallets, blockchain, or payment rails."</div>
+      <div class="player-title">Tool Developer</div>
+      <div class="player-desc">You built an API, an LLM wrapper or a specialized data service. You want to charge per call and get paid without spending weeks building payment infrastructure.</div>
+      <div class="player-quote">"I want to monetize my tool. I do not want to learn blockchain payment rails to do it."</div>
     </div>
 
-    <div class="player-card">
+    <div class="player">
+      <div class="player-num">Player 02</div>
       <div class="player-icon">🤖</div>
-      <div class="player-role">Player 2 — The buyer</div>
-      <div class="player-name">AI Agent</div>
-      <div class="player-desc">
-        An autonomous AI agent that needs to call paid tools to do its job. It has a crypto wallet with USDC. It cannot use credit cards, cannot do OAuth, cannot fill out a checkout form. It pays programmatically or not at all.
-      </div>
-      <div class="player-pain">"I need to pay for API calls with no humans in the loop. Stripe doesn't work for me."</div>
+      <div class="player-title">AI Agent</div>
+      <div class="player-desc">An autonomous agent that needs to call paid tools to complete tasks. It holds USDC in a wallet. It cannot fill out checkout forms, complete OAuth flows or use a credit card.</div>
+      <div class="player-quote">"I need to pay for API calls with no human involvement whatsoever."</div>
     </div>
 
-    <div class="player-card zeemo-card">
-      <div class="player-icon">Z</div>
-      <div class="player-role">Player 3 — The infrastructure</div>
-      <div class="player-name">Zeemo</div>
-      <div class="player-desc">
-        The payment layer between agents and tools. Zeemo intercepts the request, verifies USDC on-chain, triggers your callback, splits the money instantly, and writes a tamper-evident receipt. Neither player builds this. Zeemo is this.
-      </div>
-      <div class="player-pain">You get paid 95% the moment the agent calls. No invoices. No chargebacks. No payment code.</div>
+    <div class="player reqcast-player">
+      <div class="player-num">Player 03</div>
+      <div class="player-icon" style="font-size:16px;font-weight:800;color:#22c55e;font-family:'Inter',sans-serif;">RC</div>
+      <div class="player-title">ReqCast</div>
+      <div class="player-desc">The payment layer between the two. ReqCast intercepts the agent request, verifies USDC on-chain, fires your callback, splits the payment and writes a tamper-evident receipt. Every time. Automatically.</div>
+      <div class="player-quote">You receive 95% the moment the agent calls. No invoices. No chargebacks. No payment code to write or maintain.</div>
     </div>
   </div>
 </section>
 
-<!-- FLOW -->
 <div class="flow-bg">
-  <div class="flow-inner">
-    <div class="sec-header reveal">
-      <div class="sec-num" style="color:#191919;">02</div>
-      <h2 class="sec-title">Every transaction.<br>Fully automatic.</h2>
+  <div class="section">
+    <div class="reveal">
+      <div class="section-eyebrow">Transaction flow</div>
+      <h2>Every transaction.<br>Fully automatic.</h2>
     </div>
-
-    <div class="flow-steps reveal">
+    <div class="flow-grid reveal">
       <div class="flow-step">
-        <div class="fs-n">STEP 01</div>
+        <div class="fs-num">Step 01</div>
         <div class="fs-icon">🤖</div>
-        <div class="fs-title">Agent calls your tool</div>
-        <div class="fs-desc">HTTP POST to <code>/pay/{your-tool}</code> on Zeemo with the agent's payload.</div>
+        <div class="fs-title">Agent sends request</div>
+        <div class="fs-desc">HTTP POST hits <code>/pay/{tool-name}</code> on ReqCast with the agent payload.</div>
       </div>
       <div class="flow-step">
-        <div class="fs-n">STEP 02</div>
+        <div class="fs-num">Step 02</div>
         <div class="fs-icon">402</div>
-        <div class="fs-title">402 Payment Required</div>
-        <div class="fs-desc">Zeemo returns your tool's price. The agent's x402 client constructs a signed USDC payment automatically.</div>
+        <div class="fs-title">402 returned</div>
+        <div class="fs-desc">ReqCast returns the tool price. The x402 client signs a USDC payment automatically.</div>
       </div>
-      <div class="flow-step active">
-        <div class="fs-n">STEP 03</div>
+      <div class="flow-step highlight">
+        <div class="fs-num">Step 03</div>
         <div class="fs-icon">✓</div>
         <div class="fs-title">Verified on-chain</div>
-        <div class="fs-desc">Zeemo verifies the USDC transaction via Coinbase facilitator. Invalid payment = request rejected.</div>
+        <div class="fs-desc">USDC transaction verified via Coinbase facilitator. No valid payment means no execution.</div>
       </div>
       <div class="flow-step">
-        <div class="fs-n">STEP 04</div>
+        <div class="fs-num">Step 04</div>
         <div class="fs-icon">→</div>
-        <div class="fs-title">Your tool fires</div>
-        <div class="fs-desc">Zeemo POSTs to your callback URL with payload and <code>X-Zeemo-Verified: true</code> header.</div>
+        <div class="fs-title">Your tool runs</div>
+        <div class="fs-desc">ReqCast POSTs to your callback URL with the payload and <code>X-ReqCast-Verified: true</code>.</div>
       </div>
       <div class="flow-step">
-        <div class="fs-n">STEP 05</div>
+        <div class="fs-num">Step 05</div>
         <div class="fs-icon">💸</div>
         <div class="fs-title">You get paid</div>
-        <div class="fs-desc">95% USDC hits your wallet on-chain instantly. Receipt written. Agent gets the data.</div>
+        <div class="fs-desc">95% USDC lands in your wallet on-chain. Receipt written. Agent receives the result.</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- SPLIT -->
-<section>
-  <div class="split-wrap">
+<section class="section">
+  <div class="split-layout">
     <div class="reveal">
-      <div class="sec-header" style="margin-bottom:20px;">
-        <div class="sec-num">03</div>
-        <h2 class="sec-title">95% is yours.<br>Always.</h2>
+      <div class="section-eyebrow">Economics</div>
+      <h2>95% is yours.<br>Every single time.</h2>
+      <p style="font-size:16px;color:var(--text2);line-height:1.75;margin-bottom:0;">No monthly fees. No minimum volumes. No invoices to chase. ReqCast takes 5% per transaction to keep the infrastructure running. Everything else goes straight to your wallet the moment the transaction settles.</p>
+      <div class="split-bar"><div class="split-fill"></div></div>
+      <div class="split-labels"><span class="g">95% to you</span><span class="m">5% to ReqCast</span></div>
+      <div class="split-nums">
+        <div class="split-num green"><div class="sn-val">95%</div><div class="sn-label">Developer payout</div></div>
+        <div class="split-num"><div class="sn-val">5%</div><div class="sn-label">ReqCast fee</div></div>
       </div>
-      <p class="split-desc">No monthly fees. No minimums. No invoices. Zeemo takes 5% per transaction to keep the infrastructure running. You keep everything else, in your wallet, immediately.</p>
-      <div class="split-track"><div class="split-fill"></div></div>
-      <div class="split-pct"><span class="g">95% — you</span><span class="m">5% — Zeemo</span></div>
     </div>
 
     <div class="reveal">
-      <div class="earn-table">
-        <div class="et-row head">
-          <div class="et-cell">Calls / month</div>
-          <div class="et-cell">Price / call</div>
-          <div class="et-cell">You earn</div>
+      <div class="earnings">
+        <div class="earn-row earn-head">
+          <div class="earn-cell">Calls per month</div>
+          <div class="earn-cell">Price per call</div>
+          <div class="earn-cell">You earn</div>
         </div>
-        <div class="et-row"><div class="et-cell">100K</div><div class="et-cell">$0.01</div><div class="et-cell earn">$950</div></div>
-        <div class="et-row"><div class="et-cell">100K</div><div class="et-cell">$0.10</div><div class="et-cell earn">$9,500</div></div>
-        <div class="et-row"><div class="et-cell">100K</div><div class="et-cell">$1.00</div><div class="et-cell earn">$95,000</div></div>
-        <div class="et-row"><div class="et-cell">1M</div><div class="et-cell">$1.00</div><div class="et-cell earn">$950,000</div></div>
+        <div class="earn-row"><div class="earn-cell">100K</div><div class="earn-cell">$0.01</div><div class="earn-cell earn-val">$950</div></div>
+        <div class="earn-row"><div class="earn-cell">100K</div><div class="earn-cell">$0.10</div><div class="earn-cell earn-val">$9,500</div></div>
+        <div class="earn-row"><div class="earn-cell">100K</div><div class="earn-cell">$1.00</div><div class="earn-cell earn-val">$95,000</div></div>
+        <div class="earn-row"><div class="earn-cell">1M</div><div class="earn-cell">$1.00</div><div class="earn-cell earn-val">$950,000</div></div>
       </div>
-      <p style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.7;">High-value tools — LLM wrappers, specialized data, premium APIs — generate meaningful revenue at lower volume. Low-price high-volume tools require massive scale. Price accordingly.</p>
+      <p style="font-size:12px;color:var(--text3);margin-top:12px;line-height:1.6;">High-value tools like LLM wrappers, specialized datasets and premium APIs generate real revenue at lower call volumes. Price your tool to reflect what it delivers.</p>
     </div>
   </div>
 </section>
 
-<!-- CODE -->
 <div class="code-bg" id="integrate">
-  <div class="code-inner">
-    <div class="sec-header reveal">
-      <div class="sec-num" style="color:var(--border);">04</div>
-      <h2 class="sec-title">Integrate in<br>60 seconds.</h2>
+  <div class="section">
+    <div class="reveal">
+      <div class="section-eyebrow">Integration</div>
+      <h2>One registration.<br>One callback endpoint.<br>You are live.</h2>
+      <p class="section-sub">Register your tool once. Build a standard HTTP endpoint that returns your result. ReqCast handles the rest.</p>
     </div>
 
-    <div class="code-grid reveal">
-      <ul class="step-list">
-        <li class="step-item" onclick="showCode(0,this)">
-          <div class="s-badge">1</div>
-          <div><div class="s-title">Register your tool</div><div class="s-desc">One POST to /register. Set price, wallet, callback. Done.</div></div>
-        </li>
-        <li class="step-item dim" onclick="showCode(1,this)">
-          <div class="s-badge">2</div>
-          <div><div class="s-title">Build your callback</div><div class="s-desc">A standard HTTP endpoint. Zeemo calls it after payment clears.</div></div>
-        </li>
-        <li class="step-item dim" onclick="showCode(2,this)">
-          <div class="s-badge">3</div>
-          <div><div class="s-title">Verify receipts</div><div class="s-desc">Every transaction has a tamper-evident receipt with on-chain proof.</div></div>
-        </li>
-      </ul>
+    <div class="code-layout reveal">
+      <div class="code-steps">
+        <div class="code-step active" onclick="showTab(0,this)">
+          <div class="cs-num">1</div>
+          <div><div class="cs-title">Register your tool</div><div class="cs-desc">One POST to /register with your price, wallet and callback URL.</div></div>
+        </div>
+        <div class="code-step" onclick="showTab(1,this)">
+          <div class="cs-num">2</div>
+          <div><div class="cs-title">Build your callback</div><div class="cs-desc">A standard HTTP endpoint. ReqCast calls it after payment clears.</div></div>
+        </div>
+        <div class="code-step" onclick="showTab(2,this)">
+          <div class="cs-num">3</div>
+          <div><div class="cs-title">Verify receipts</div><div class="cs-desc">Every payment has a tamper-evident receipt with on-chain proof.</div></div>
+        </div>
+      </div>
 
       <div class="code-panel">
-        <div class="cp-tab" id="cp-label">Step 1 — Register</div>
-        <div id="cp-code">
-<pre><span class="cm"># Register your tool — one call, you're live</span>
+        <div class="cp-header">
+          <div class="cp-dot"></div><div class="cp-dot"></div><div class="cp-dot"></div>
+          <span class="cp-title" id="cp-title">register.sh</span>
+        </div>
+        <div class="cp-body">
+          <div id="cp-code">
+<pre><span class="cm"># Register your tool with one API call</span>
 curl -X POST \
-  https://reqcastapi-production.up.railway.app/register \
+  https://reqcast-production.up.railway.app/register \
   -H <span class="cy">"Content-Type: application/json"</span> \
   -d <span class="cy">'{
     "wallet_address": "0xYOUR_WALLET",
@@ -927,34 +1018,35 @@ curl -X POST \
   <span class="cg">"status"</span>:        <span class="cy">"registered"</span>,
   <span class="cg">"pay_endpoint"</span>:  <span class="cy">"/pay/your-tool-name"</span>,
   <span class="cg">"price_per_call"</span>: <span class="cy">"0.10"</span>
-}</pre>
+}
+
+<span class="cm"># AI agents call your tool at:</span>
+<span class="cm"># POST /pay/your-tool-name</span></pre>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- REGISTER -->
-<section id="register">
-  <div class="reg-wrap">
-    <div class="reg-left reveal">
-      <div class="sec-header" style="margin-bottom:0;">
-        <div class="sec-num">05</div>
-        <h2 class="sec-title">Register<br>your tool.</h2>
-      </div>
-      <p>Currently on Base Sepolia testnet. No real money — get your integration working before mainnet launch.</p>
+<section class="section" id="register">
+  <div class="register-layout">
+    <div class="reveal">
+      <div class="section-eyebrow">Get started</div>
+      <h2>Register<br>your tool.</h2>
+      <p class="reg-desc">Currently running on Base Sepolia testnet. No real money moves. Get your integration working and test end to end before mainnet launch.</p>
       <ul class="checklist">
-        <li><div class="ck-icon">✓</div>Your tool gets its own payment endpoint instantly</li>
-        <li><div class="ck-icon">✓</div>AI agents call <code style="font-size:12px;">/pay/{your-tool-name}</code></li>
-        <li><div class="ck-icon">✓</div>You receive 95% USDC per call, on-chain</li>
-        <li><div class="ck-icon">✓</div>Every transaction logged with tamper-evident receipt</li>
-        <li><div class="ck-icon">✓</div>Zero payment code on your side</li>
+        <li><div class="ck">✓</div>Your tool gets a dedicated payment endpoint immediately</li>
+        <li><div class="ck">✓</div>AI agents call it at <code style="font-size:12px;color:var(--green);">/pay/{your-tool-name}</code></li>
+        <li><div class="ck">✓</div>You receive 95% USDC per call, settled on-chain</li>
+        <li><div class="ck">✓</div>Every transaction stored in a tamper-evident receipt</li>
+        <li><div class="ck">✓</div>Zero payment code to write or maintain on your side</li>
       </ul>
     </div>
 
     <div class="reveal">
-      <div class="form-box">
-        <div class="form-box-title">Get your tool live</div>
+      <div class="form-card">
+        <div class="form-card-title">Register your tool</div>
         <form id="register-form">
           <div class="fg-row">
             <div class="fg">
@@ -967,7 +1059,7 @@ curl -X POST \
             </div>
           </div>
           <div class="fg">
-            <label>Your USDC wallet (Base network)</label>
+            <label>USDC wallet address on Base network</label>
             <input type="text" id="wallet_address" placeholder="0x..." required>
           </div>
           <div class="fg">
@@ -975,10 +1067,10 @@ curl -X POST \
             <input type="url" id="callback_url" placeholder="https://your-server.com/your-tool" required>
           </div>
           <div class="fg">
-            <label>Timeout seconds (max 30)</label>
+            <label>Timeout in seconds (max 30)</label>
             <input type="number" id="timeout_seconds" value="10" min="1" max="30">
           </div>
-          <button type="submit" class="submit-btn" id="submit-btn">Register tool →</button>
+          <button type="submit" class="submit-btn" id="submit-btn">Register tool</button>
         </form>
         <div class="form-result" id="form-result"></div>
       </div>
@@ -987,11 +1079,11 @@ curl -X POST \
 </section>
 
 <footer>
-  <div class="footer-logo">Zeemo</div>
+  <div class="footer-logo"><div class="logo-dot"></div>ReqCast</div>
   <div class="footer-links">
-    <a href="https://reqcastapi-production.up.railway.app/health" target="_blank">API Status</a>
-    <a href="https://reqcastapi-production.up.railway.app/docs" target="_blank">API Docs</a>
-    <a href="https://github.com/l2bg/zeemopay" target="_blank">GitHub</a>
+    <a href="https://reqcast-production.up.railway.app/health" target="_blank">API Status</a>
+    <a href="https://reqcast-production.up.railway.app/docs" target="_blank">API Docs</a>
+    <a href="https://github.com/l2bg/reqcast" target="_blank">GitHub</a>
   </div>
   <div class="footer-note">Base Sepolia Testnet · x402 Protocol · Coinbase CDP</div>
 </footer>
@@ -1002,12 +1094,12 @@ const observer = new IntersectionObserver(entries => {
 }, { threshold: 0.08 });
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-const codes = [
+const tabs = [
   {
-    label: 'Step 1 — Register',
-    html: `<pre><span class="cm"># Register your tool — one call, you're live</span>
+    title: 'register.sh',
+    html: `<pre><span class="cm"># Register your tool with one API call</span>
 curl -X POST \\
-  https://reqcastapi-production.up.railway.app/register \\
+  https://reqcast-production.up.railway.app/register \\
   -H <span class="cy">"Content-Type: application/json"</span> \\
   -d <span class="cy">'{
     "wallet_address": "0xYOUR_WALLET",
@@ -1022,12 +1114,15 @@ curl -X POST \\
   <span class="cg">"status"</span>:        <span class="cy">"registered"</span>,
   <span class="cg">"pay_endpoint"</span>:  <span class="cy">"/pay/your-tool-name"</span>,
   <span class="cg">"price_per_call"</span>: <span class="cy">"0.10"</span>
-}</pre>`
+}
+
+<span class="cm"># AI agents call your tool at POST /pay/your-tool-name</span></pre>`
   },
   {
-    label: 'Step 2 — Your callback',
-    html: `<pre><span class="cm"># Standard HTTP endpoint — no payment logic needed</span>
-<span class="cm"># X-Zeemo-Verified: true confirms payment cleared</span>
+    title: 'callback.py',
+    html: `<pre><span class="cm"># A standard HTTP endpoint on your server</span>
+<span class="cm"># ReqCast calls it after payment is verified</span>
+<span class="cm"># X-ReqCast-Verified: true confirms the payment cleared</span>
 
 <span class="cb">from</span> fastapi <span class="cb">import</span> FastAPI, Request
 
@@ -1038,18 +1133,17 @@ app = FastAPI()
     body = <span class="cb">await</span> request.json()
     user_input = body[<span class="cy">"input"</span>]
 
-    <span class="cm"># Run your tool logic here</span>
     result = your_tool_logic(user_input)
 
-    <span class="cm"># Return any JSON-serializable response</span>
     <span class="cb">return</span> {<span class="cy">"result"</span>: result}
 
-<span class="cm"># That's it. Zeemo handles everything else.</span></pre>`
+<span class="cm"># ReqCast handles all payment logic.</span>
+<span class="cm"># Your callback just returns the tool output.</span></pre>`
   },
   {
-    label: 'Step 3 — Verify receipts',
-    html: `<pre><span class="cm"># Every transaction has tamper-evident proof</span>
-curl https://reqcastapi-production.up.railway.app/receipt/{id}
+    title: 'receipt.sh',
+    html: `<pre><span class="cm"># Every transaction has an on-chain tamper-evident receipt</span>
+curl https://reqcast-production.up.railway.app/receipt/{id}
 
 <span class="cm"># Response</span>
 {
@@ -1058,27 +1152,25 @@ curl https://reqcastapi-production.up.railway.app/receipt/{id}
   <span class="cg">"status"</span>:           <span class="cy">"completed"</span>,
   <span class="cg">"price_usdc"</span>:       <span class="cb">0.10</span>,
   <span class="cg">"developer_cut"</span>:    <span class="cb">0.095</span>,
-  <span class="cg">"zeemo_cut"</span>:        <span class="cb">0.005</span>,
+  <span class="cg">"reqcast_cut"</span>:      <span class="cb">0.005</span>,
   <span class="cg">"payout_tx_hash"</span>:   <span class="cy">"0x..."</span>,
   <span class="cg">"developer_wallet"</span>: <span class="cy">"0x..."</span>
 }
 
-<span class="cm"># Verify payout_tx_hash on BaseScan</span>
-<span class="cm"># Real on-chain proof of every payout</span></pre>`
+<span class="cm"># Verify payout_tx_hash on BaseScan for on-chain proof</span></pre>`
   }
 ];
 
-function showCode(idx, el) {
-  document.querySelectorAll('.step-item').forEach((s, i) => s.classList.toggle('dim', i !== idx));
-  document.getElementById('cp-label').textContent = codes[idx].label;
-  document.getElementById('cp-code').innerHTML = codes[idx].html;
+function showTab(idx, el) {
+  document.querySelectorAll('.code-step').forEach((s, i) => s.classList.toggle('active', i === idx));
+  document.getElementById('cp-title').textContent = tabs[idx].title;
+  document.getElementById('cp-code').innerHTML = tabs[idx].html;
 }
 
 document.getElementById('register-form').addEventListener('submit', async function(e) {
   e.preventDefault();
   const btn = document.getElementById('submit-btn');
   const res = document.getElementById('form-result');
-
   btn.disabled = true;
   btn.textContent = 'Registering...';
   res.style.display = 'none';
@@ -1092,36 +1184,34 @@ document.getElementById('register-form').addEventListener('submit', async functi
   };
 
   try {
-    const r = await fetch('https://reqcastapi-production.up.railway.app/register', {
+    const r = await fetch('https://reqcast-production.up.railway.app/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     const data = await r.json();
-
     if (r.ok) {
       res.className = 'form-result success';
       res.style.display = 'block';
-      res.innerHTML = `✓ Tool registered successfully<br><br>
-        <strong>Tool name:</strong> ${data.tool_name}<br>
+      res.innerHTML = `Tool registered successfully.<br><br>
         <strong>Pay endpoint:</strong> /pay/${data.tool_name}<br>
-        <strong>Price per call:</strong> $${data.price_per_call} USDC<br><br>
+        <strong>Price:</strong> $${data.price_per_call} USDC per call<br><br>
         AI agents call your tool at:<br>
-        POST https://reqcastapi-production.up.railway.app/pay/${data.tool_name}`;
+        <code>POST https://reqcast-production.up.railway.app/pay/${data.tool_name}</code>`;
       this.reset();
     } else {
       res.className = 'form-result error';
       res.style.display = 'block';
-      res.textContent = `Error: ${data.detail || JSON.stringify(data)}`;
+      res.textContent = 'Error: ' + (data.detail || JSON.stringify(data));
     }
   } catch (err) {
     res.className = 'form-result error';
     res.style.display = 'block';
-    res.textContent = `Network error: ${err.message}`;
+    res.textContent = 'Network error: ' + err.message;
   }
 
   btn.disabled = false;
-  btn.textContent = 'Register tool →';
+  btn.textContent = 'Register tool';
 });
 </script>
 </body>
