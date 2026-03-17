@@ -1,6 +1,6 @@
 # ReqCast
 
-Payment infrastructure for AI tools. ReqCast sits between AI agents and paid API tools. Every transaction passes through ReqCast. ReqCast verifies the payment on-chain, triggers the tool, writes a receipt, takes a 5% cut, and pays the developer 95% instantly in USDC.
+Payment infrastructure for AI tools. Your tool gets a dedicated payment endpoint immediately. ReqCast sits between AI agents and any registered paid API tool. Every transaction passes through ReqCast. ReqCast verifies the payment on-chain, triggers the tool, writes a receipt, and pays the developer 95% instantly in USDC.
 
 ## What This Repo Contains
 
