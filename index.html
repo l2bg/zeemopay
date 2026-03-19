@@ -1029,6 +1029,21 @@ curl -X POST \
   </div>
 </div>
 
+
+<section class="section" id="live-tools">
+  <div class="reveal">
+    <div class="section-eyebrow">Live on ReqCast</div>
+    <h2>Tools registered<br>right now.</h2>
+    <p class="section-sub">Every tool below is live on Base Sepolia testnet. Call any of them at its pay endpoint with a USDC wallet and an x402 client.</p>
+  </div>
+  <div id="tools-grid" class="reveal" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:8px;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;display:flex;align-items:center;justify-content:center;">
+      <span style="font-size:13px;color:var(--text3);">Loading registered tools...</span>
+    </div>
+  </div>
+  <p id="tools-empty" style="display:none;font-size:14px;color:var(--text3);margin-top:16px;">No tools registered yet. Be the first.</p>
+</section>
+
 <section class="section" id="register">
   <div class="register-layout">
     <div class="reveal">
@@ -1100,6 +1115,40 @@ curl -X POST \
 </footer>
 
 <script>
+
+async function loadTools() {
+  try {
+    const r = await fetch('https://api.reqcast.com/tools');
+    const data = await r.json();
+    const grid = document.getElementById('tools-grid');
+    const empty = document.getElementById('tools-empty');
+
+    if (!data.tools || data.tools.length === 0) {
+      grid.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+
+    grid.innerHTML = data.tools.map(tool => `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(34,197,94,0.3)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+          <div style="font-size:16px;font-weight:700;color:#fff;letter-spacing:-0.3px;">${tool.tool_name}</div>
+          <div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);color:var(--green);font-size:11px;font-weight:600;padding:4px 10px;border-radius:100px;">Live</div>
+        </div>
+        <div style="font-size:22px;font-weight:700;color:var(--green);letter-spacing:-0.5px;margin-bottom:16px;">$${tool.price_per_call} <span style="font-size:13px;font-weight:400;color:var(--text3);">per call</span></div>
+        <div style="background:var(--bg3);border-radius:6px;padding:10px 14px;font-family:'SF Mono','Consolas',monospace;font-size:11px;color:var(--text3);word-break:break-all;">
+          POST ${tool.pay_endpoint}
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:var(--text3);">Registered ${new Date(tool.registered_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}</div>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('tools-grid').innerHTML = '<div style="font-size:13px;color:var(--text3);">Could not load tools.</div>';
+  }
+}
+
+loadTools();
+
 const observer = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.08 });
