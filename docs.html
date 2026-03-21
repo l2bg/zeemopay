@@ -513,7 +513,7 @@ hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
 <!-- MAIN -->
 <main class="main">
   <div class="topbar">
-    <span class="topbar-title">ReqCast API — Base Sepolia Testnet</span>
+    <span class="topbar-title">ReqCast API — Base Mainnet</span>
     <div class="topbar-links">
       <a href="https://api.reqcast.com/health" target="_blank">API Status</a>
       <a href="https://www.reqcast.com">Home</a>
@@ -528,7 +528,7 @@ hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
       <h1>ReqCast Developer Reference</h1>
       <p>ReqCast is payment infrastructure for the AI agent economy. It sits between AI agents and the API tools they need to call. Developers register their tool once and get paid in USDC every time an agent calls it. No payment code required on your side.</p>
       <p>Base URL: <code style="color:var(--green);font-family:'SF Mono',monospace;font-size:13px;">https://api.reqcast.com</code></p>
-      <p>Network: Base Sepolia Testnet (eip155:84532) · Currency: USDC</p>
+      <p>Network: Base Mainnet (eip155:8453) · Currency: USDC</p>
     </div>
 
     <!-- QUICKSTART -->
@@ -626,7 +626,7 @@ app = FastAPI()
     register_exact_evm_client(
         client,
         account,
-        networks=[<span class="cy">'eip155:84532'</span>]
+        networks=[<span class="cy">'eip155:8453'</span>]
     )
 
     <span class="cb">async with</span> x402HttpxClient(client) <span class="cb">as</span> http:
@@ -664,8 +664,8 @@ asyncio.run(call_tool())</pre>
             <pre>{
   <span class="cg">"status"</span>:           <span class="cy">"ok"</span>,
   <span class="cg">"version"</span>:          <span class="cy">"1.0.0"</span>,
-  <span class="cg">"environment"</span>:      <span class="cy">"testnet"</span>,
-  <span class="cg">"network"</span>:          <span class="cy">"base-sepolia"</span>,
+  <span class="cg">"environment"</span>:      <span class="cy">"mainnet"</span>,
+  <span class="cg">"network"</span>:          <span class="cy">"base"</span>,
   <span class="cg">"uptime"</span>:           <span class="cy">"12h 33m"</span>,
   <span class="cg">"registered_tools"</span>: <span class="cb">3</span>,
   <span class="cg">"transactions"</span>: {
@@ -880,7 +880,7 @@ asyncio.run(call_tool())</pre>
         </div>
       </div>
 
-      <p>Verify any <code style="color:var(--green);font-family:'SF Mono',monospace;font-size:13px;">payout_tx_hash</code> at: <a href="https://sepolia.basescan.org" target="_blank">sepolia.basescan.org</a></p>
+      <p>Verify any <code style="color:var(--green);font-family:'SF Mono',monospace;font-size:13px;">payout_tx_hash</code> at: <a href="https://basescan.org" target="_blank">basescan.org</a></p>
     </div>
 
     <!-- GET /status -->
@@ -931,14 +931,14 @@ asyncio.run(call_tool())</pre>
       </div>
 
       <h3>What to do if a dispute arises</h3>
-      <p>Contact us at <a href="mailto:contact@reqcast.com">contact@reqcast.com</a> with the transaction ID and payout tx hash. Every transaction has a full on-chain audit trail. Disputes are handled manually on a case by case basis.</p>
+      <p>Contact us at <a href="/cdn-cgi/l/email-protection#a4c7cbcad0c5c7d0e4d6c1d5c7c5d7d08ac7cbc9"><span class="__cf_email__" data-cfemail="b0d3dfdec4d1d3c4f0c2d5c1d3d1c3c49ed3dfdd">[email&#160;protected]</span></a> with the transaction ID and payout tx hash. Every transaction has a full on-chain audit trail. Disputes are handled manually on a case by case basis.</p>
 
       <h3>Best practices for tool developers</h3>
       <ul style="color:var(--text2);padding-left:20px;margin-bottom:16px;line-height:2;">
         <li>Make your callback URL highly reliable. Use a server with good uptime.</li>
         <li>Set a realistic timeout. If your tool takes 20 seconds, register with timeout_seconds: 25.</li>
         <li>Return a meaningful error response if something goes wrong so the buyer understands what happened.</li>
-        <li>Test your callback URL thoroughly on testnet before going mainnet.</li>
+        <li>Test your callback URL thoroughly before going live. Use Base Sepolia testnet for initial testing.</li>
       </ul>
 
       <div class="callout info">
@@ -950,7 +950,7 @@ asyncio.run(call_tool())</pre>
   </div>
 </main>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 function copyCode(btn) {
   const pre = btn.closest('.code-block').querySelector('pre');
   const text = pre.innerText;
@@ -967,14 +967,4 @@ const observer = new IntersectionObserver(entries => {
   entries.forEach(e => {
     if (e.isIntersecting) {
       links.forEach(l => l.classList.remove('active'));
-      const active = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
-      if (active) active.classList.add('active');
-    }
-  });
-}, { threshold: 0.3, rootMargin: '-56px 0px 0px 0px' });
-
-sections.forEach(s => observer.observe(s));
-</script>
-
-</body>
-</html>
+      const active = document.
