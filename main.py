@@ -275,8 +275,10 @@ async def health_check():
     uptime_minutes  = (uptime_seconds % 3600) // 60
     uptime_str      = f"{uptime_hours}h {uptime_minutes}m"
 
-    balance         = await get_wallet_usdc_balance()
-    wallet_warning  = (balance is not None and balance < 5.0)
+    balance        = await get_wallet_usdc_balance()
+    wallet_warning = (balance is not None and balance < 0.50)
+    if wallet_warning:
+        log("wallet_low", level="WARNING", error=f"ReqCast wallet balance low: ${balance} USDC")
 
     return {
         "status":           "ok",
@@ -292,8 +294,6 @@ async def health_check():
             "success_rate": f"{success_rate}%" if success_rate is not None else "n/a"
         },
         "last_transaction": last.data[0]["timestamp"] if last.data else None,
-        "wallet_balance":   f"${balance} USDC" if balance is not None else "unavailable",
-        "wallet_warning":   wallet_warning,
         "docs":             "https://api.reqcast.com/docs"
     }
 
