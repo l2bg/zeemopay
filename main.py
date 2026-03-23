@@ -156,14 +156,19 @@ app.add_middleware(
 # ============================================================
 def _cdp_create_headers():
     from cdp.auth import get_auth_headers, GetAuthHeadersOptions
-    headers = get_auth_headers(GetAuthHeadersOptions(
-        api_key_id=CDP_API_KEY_ID,
-        api_key_secret=CDP_API_KEY_SECRET,
-        request_method="GET",
-        request_host="api.cdp.coinbase.com",
-        request_path="/platform/v2/x402/supported",
-    ))
-    return {"verify": headers, "settle": headers}
+    def make(method, path):
+        return get_auth_headers(GetAuthHeadersOptions(
+            api_key_id=CDP_API_KEY_ID,
+            api_key_secret=CDP_API_KEY_SECRET,
+            request_method=method,
+            request_host="api.cdp.coinbase.com",
+            request_path=path,
+        ))
+    return {
+        "supported": make("GET",  "/platform/v2/x402/supported"),
+        "verify":    make("POST", "/platform/v2/x402/verify"),
+        "settle":    make("POST", "/platform/v2/x402/settle"),
+    }
 
 facilitator = HTTPFacilitatorClient(FacilitatorConfig(
     url="https://api.cdp.coinbase.com/platform/v2/x402",
