@@ -220,6 +220,7 @@ class RegisterRequest(BaseModel):
     timeout_seconds:      int = 10
     callback_auth_header: str | None = None
     callback_auth_value:  str | None = None
+    callback_payload_mode: str | None = None
 
 class PayRequest(BaseModel):
     buyer_payload: dict
@@ -397,15 +398,16 @@ def register_tool(request: RegisterRequest):
     applied_timeout = min(request.timeout_seconds, 30)
 
     supabase.table("tools").insert({
-        "tool_name":            request.tool_name,
-        "wallet_address":       request.wallet_address,
-        "price_per_call":       request.price_per_call,
-        "callback_url":         str(request.callback_url),
-        "timeout_seconds":      applied_timeout,
-        "callback_auth_header": request.callback_auth_header,
-        "callback_auth_value":  request.callback_auth_value,
-        "registered_at":        datetime.utcnow().isoformat(),
-        "network":              ENVIRONMENT
+        "tool_name":             request.tool_name,
+        "wallet_address":        request.wallet_address,
+        "price_per_call":        request.price_per_call,
+        "callback_url":          str(request.callback_url),
+        "timeout_seconds":       applied_timeout,
+        "callback_auth_header":  request.callback_auth_header,
+        "callback_auth_value":   request.callback_auth_value,
+        "callback_payload_mode": request.callback_payload_mode,
+        "registered_at":         datetime.utcnow().isoformat(),
+        "network":               ENVIRONMENT
     }).execute()
 
     routes[f"POST /pay/{request.tool_name}"] = build_route(
@@ -493,10 +495,16 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
         if tool.get("callback_auth_header") and tool.get("callback_auth_value"):
             callback_headers[tool["callback_auth_header"]] = tool["callback_auth_value"]
 
+        callback_payload = (
+            request.buyer_payload
+            if tool.get("callback_payload_mode") == "passthrough"
+            else {"input": request.buyer_payload}
+        )
+
         async with httpx.AsyncClient() as client:
             tool_response = await client.post(
                 url=tool["callback_url"],
-                json={"input": request.buyer_payload},
+                json=callback_payload,
                 headers=callback_headers,
                 timeout=tool["timeout_seconds"]
             )
