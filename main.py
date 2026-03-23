@@ -154,7 +154,11 @@ app.add_middleware(
 # ============================================================
 # INITIALIZE X402
 # ============================================================
-facilitator = HTTPFacilitatorClient()
+facilitator = HTTPFacilitatorClient(
+    url="https://api.cdp.coinbase.com/platform/v2/x402",
+    api_key_id=CDP_API_KEY_ID,
+    api_key_secret=CDP_API_KEY_SECRET,
+)
 server      = x402ResourceServer(facilitator)
 server.register(NETWORK_ID, ExactEvmServerScheme())
 
