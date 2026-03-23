@@ -24,7 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, HttpUrl
 from supabase import create_client, Client
 from x402 import x402ResourceServer
-from x402.http import HTTPFacilitatorClient, FacilitatorConfig
+from x402.http import HTTPFacilitatorClient, FacilitatorConfig, CreateHeadersAuthProvider
 from x402.http.middleware.fastapi import payment_middleware
 from x402.mechanisms.evm.exact import ExactEvmServerScheme
 from cdp import CdpClient
@@ -154,7 +154,21 @@ app.add_middleware(
 # ============================================================
 # INITIALIZE X402
 # ============================================================
-facilitator = HTTPFacilitatorClient(FacilitatorConfig(url="https://api.cdp.coinbase.com/platform/v2/x402"))
+def _cdp_create_headers():
+    from cdp.auth import get_auth_headers, GetAuthHeadersOptions
+    headers = get_auth_headers(GetAuthHeadersOptions(
+        api_key_id=CDP_API_KEY_ID,
+        api_key_secret=CDP_API_KEY_SECRET,
+        request_method="GET",
+        request_host="api.cdp.coinbase.com",
+        request_path="/platform/v2/x402/supported",
+    ))
+    return {"verify": headers, "settle": headers}
+
+facilitator = HTTPFacilitatorClient(FacilitatorConfig(
+    url="https://api.cdp.coinbase.com/platform/v2/x402",
+    auth_provider=CreateHeadersAuthProvider(_cdp_create_headers)
+))
 server      = x402ResourceServer(facilitator)
 server.register(NETWORK_ID, ExactEvmServerScheme())
 
