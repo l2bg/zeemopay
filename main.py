@@ -58,6 +58,7 @@ SUPABASE_URL       = os.getenv("SUPABASE_URL")
 SUPABASE_KEY       = os.getenv("SUPABASE_KEY")
 RESEND_API_KEY     = os.getenv("RESEND_API_KEY")
 ALERT_EMAIL        = "leandrogspr@gmail.com"
+DISABLE_PAYOUTS    = os.getenv("DISABLE_PAYOUTS", "false").lower() == "true"
 
 NETWORK_ID = "eip155:84532" if ENVIRONMENT == "testnet" else "eip155:8453"
 NETWORK_NAME = "base-sepolia" if ENVIRONMENT == "testnet" else "base"
@@ -515,7 +516,11 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
         refund_tx = None
         if buyer_wallet:
             try:
-                refund_tx = await send_usdc(buyer_wallet, price)
+                if DISABLE_PAYOUTS:
+                    refund_tx = "REFUND_DISABLED_STAGING"
+                    logger.info(f"[STAGING] Refund skipped — DISABLE_PAYOUTS=true")
+                else:
+                    refund_tx = await send_usdc(buyer_wallet, price)
                 log("refund_sent",
                     tool_name=tool_name,
                     transaction_id=transaction_id,
@@ -558,7 +563,11 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
         refund_tx = None
         if buyer_wallet:
             try:
-                refund_tx = await send_usdc(buyer_wallet, price)
+                if DISABLE_PAYOUTS:
+                    refund_tx = "REFUND_DISABLED_STAGING"
+                    logger.info(f"[STAGING] Refund skipped — DISABLE_PAYOUTS=true")
+                else:
+                    refund_tx = await send_usdc(buyer_wallet, price)
                 log("refund_sent",
                     tool_name=tool_name,
                     transaction_id=transaction_id,
@@ -608,7 +617,11 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
         refund_tx = None
         if buyer_wallet:
             try:
-                refund_tx = await send_usdc(buyer_wallet, price)
+                if DISABLE_PAYOUTS:
+                    refund_tx = "REFUND_DISABLED_STAGING"
+                    logger.info(f"[STAGING] Refund skipped — DISABLE_PAYOUTS=true")
+                else:
+                    refund_tx = await send_usdc(buyer_wallet, price)
                 log("refund_sent",
                     tool_name=tool_name,
                     transaction_id=transaction_id,
@@ -648,7 +661,11 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
         )
 
     try:
-        tx_hash = await send_usdc(tool["wallet_address"], developer_cut)
+        if DISABLE_PAYOUTS:
+            tx_hash = "PAYOUT_DISABLED_STAGING"
+            logger.info(f"[STAGING] Payout skipped for {tool_name} — DISABLE_PAYOUTS=true")
+        else:
+            tx_hash = await send_usdc(tool["wallet_address"], developer_cut)
 
         supabase.table("transactions").update({
             "status": "completed",
