@@ -19,7 +19,7 @@ import resend
 from datetime import datetime, timedelta
 from collections import defaultdict
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, HttpUrl
 from supabase import create_client, Client
@@ -58,7 +58,6 @@ SUPABASE_URL       = os.getenv("SUPABASE_URL")
 SUPABASE_KEY       = os.getenv("SUPABASE_KEY")
 RESEND_API_KEY     = os.getenv("RESEND_API_KEY")
 ALERT_EMAIL        = "leandrogspr@gmail.com"
-DISABLE_PAYOUTS    = os.getenv("DISABLE_PAYOUTS", "false").lower() == "true"
 
 NETWORK_ID = "eip155:84532" if ENVIRONMENT == "testnet" else "eip155:8453"
 NETWORK_NAME = "base-sepolia" if ENVIRONMENT == "testnet" else "base"
@@ -378,7 +377,7 @@ def list_tools():
 # ENDPOINT 2 - REGISTER A TOOL
 # ============================================================
 @app.post("/register")
-def register_tool(request: RegisterRequest):
+def register_tool(request: RegisterRequest, background_tasks: BackgroundTasks):
 
     existing = supabase.table("tools")         .select("tool_name")         .eq("tool_name", request.tool_name)         .execute()
 
@@ -420,6 +419,21 @@ def register_tool(request: RegisterRequest):
         developer_wallet=request.wallet_address,
         amount_usdc=float(request.price_per_call),
         meta={"callback_url": str(request.callback_url), "timeout": applied_timeout})
+
+    background_tasks.add_task(
+        send_alert,
+        subject=f"[ReqCast] New tool registered: {request.tool_name}",
+        body=(
+            f"A new tool has been registered on ReqCast.\n\n"
+            f"Tool name:       {request.tool_name}\n"
+            f"Price per call:  ${request.price_per_call} USDC\n"
+            f"Wallet:          {request.wallet_address}\n"
+            f"Callback URL:    {request.callback_url}\n"
+            f"Network:         {ENVIRONMENT}\n"
+            f"Pay endpoint:    https://api.reqcast.com/pay/{request.tool_name}\n"
+            f"Registered at:   {datetime.utcnow().isoformat()}"
+        )
+    )
 
     return {
         "status":          "registered",
@@ -516,11 +530,7 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
         refund_tx = None
         if buyer_wallet:
             try:
-                if DISABLE_PAYOUTS:
-                    refund_tx = "REFUND_DISABLED_STAGING"
-                    logger.info(f"[STAGING] Refund skipped — DISABLE_PAYOUTS=true")
-                else:
-                    refund_tx = await send_usdc(buyer_wallet, price)
+                refund_tx = await send_usdc(buyer_wallet, price)
                 log("refund_sent",
                     tool_name=tool_name,
                     transaction_id=transaction_id,
@@ -563,11 +573,7 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
         refund_tx = None
         if buyer_wallet:
             try:
-                if DISABLE_PAYOUTS:
-                    refund_tx = "REFUND_DISABLED_STAGING"
-                    logger.info(f"[STAGING] Refund skipped — DISABLE_PAYOUTS=true")
-                else:
-                    refund_tx = await send_usdc(buyer_wallet, price)
+                refund_tx = await send_usdc(buyer_wallet, price)
                 log("refund_sent",
                     tool_name=tool_name,
                     transaction_id=transaction_id,
@@ -617,11 +623,7 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
         refund_tx = None
         if buyer_wallet:
             try:
-                if DISABLE_PAYOUTS:
-                    refund_tx = "REFUND_DISABLED_STAGING"
-                    logger.info(f"[STAGING] Refund skipped — DISABLE_PAYOUTS=true")
-                else:
-                    refund_tx = await send_usdc(buyer_wallet, price)
+                refund_tx = await send_usdc(buyer_wallet, price)
                 log("refund_sent",
                     tool_name=tool_name,
                     transaction_id=transaction_id,
@@ -661,11 +663,7 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
         )
 
     try:
-        if DISABLE_PAYOUTS:
-            tx_hash = "PAYOUT_DISABLED_STAGING"
-            logger.info(f"[STAGING] Payout skipped for {tool_name} — DISABLE_PAYOUTS=true")
-        else:
-            tx_hash = await send_usdc(tool["wallet_address"], developer_cut)
+        tx_hash = await send_usdc(tool["wallet_address"], developer_cut)
 
         supabase.table("transactions").update({
             "status": "completed",
