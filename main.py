@@ -249,23 +249,19 @@ class PayRequest(BaseModel):
     buyer_payload: dict
 
 # ============================================================
-# EXTRACT BUYER WALLET FROM X-PAYMENT HEADER
+# EXTRACT PAYMENT IDENTITY FROM X402 PAYMENT PAYLOAD
 # ============================================================
 
 
-def extract_buyer_wallet(request: Request) -> str | None:
+def extract_payment_identity(raw_request: Request) -> tuple[str | None, str | None]:
     try:
-        payment_header = request.headers.get(
-            "X-PAYMENT") or request.headers.get("x-payment")
-        if not payment_header:
-            return None
-        padding = 4 - len(payment_header) % 4
-        decoded = base64.b64decode(
-            payment_header + "=" * padding).decode("utf-8")
-        payload = json.loads(decoded)
-        return payload.get("from") or payload.get("payer") or payload.get("sender")
+        payload = raw_request.state.payment_payload
+        authorization = payload.payload.get("authorization", {})
+        nonce = authorization.get("nonce")
+        buyer = authorization.get("from")
+        return nonce, buyer
     except Exception:
-        return None
+        return None, None
 
 # ============================================================
 # USDC TRANSFER HELPER
@@ -603,8 +599,8 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
     transaction_id = str(uuid.uuid4())
     timestamp = datetime.utcnow().isoformat()
 
-    # Extract buyer wallet from x402 payment header
-    buyer_wallet = extract_buyer_wallet(raw_request)
+    # Extract payment identity from x402 payment payload
+    payment_nonce, buyer_wallet = extract_payment_identity(raw_request)
 
     # Check rate limit
     if is_rate_limited(tool_name):
@@ -634,6 +630,27 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
     developer_cut = round(price * 0.95, 6)
     reqcast_cut = round(price * 0.05, 6)
 
+    # Idempotency check — same payment nonce must never execute twice
+    if payment_nonce:
+        existing = supabase.table("transactions")\
+            .select("transaction_id, status, tool_result")\
+            .eq("payment_nonce", payment_nonce)\
+            .eq("tool_name", tool_name)\
+            .execute()
+        if existing.data:
+            ex = existing.data[0]
+            if ex["status"] in ("completed", "execution_started", "refund_pending", "refunded", "refund_failed"):
+                log("idempotency_hit",
+                    tool_name=tool_name,
+                    transaction_id=ex["transaction_id"],
+                    buyer_wallet=buyer_wallet,
+                    meta={"existing_status": ex["status"]})
+                return {
+                    "transaction_id": ex["transaction_id"],
+                    "result": ex["tool_result"],
+                    "receipt": ex
+                }
+
     # Write pending transaction
     supabase.table("transactions").insert({
         "transaction_id":     transaction_id,
@@ -643,7 +660,8 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
         "updated_at":         timestamp,
         "buyer_wallet":       buyer_wallet,
         "network":            ENVIRONMENT,
-        "execution_attempts": 0
+        "execution_attempts": 0,
+        "payment_nonce":      payment_nonce
     }).execute()
 
     log("payment_attempt",
@@ -652,11 +670,6 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
         buyer_wallet=buyer_wallet,
         developer_wallet=tool["wallet_address"],
         amount_usdc=price)
-    logger.info(
-        f"[DEBUG] payment_payload: {raw_request.state.payment_payload}")
-    logger.info(
-        f"[DEBUG] payment_requirements: {raw_request.state.payment_requirements}")
-
     # Mark execution started
     supabase.table("transactions").update({
         "status":             "execution_started",
