@@ -603,7 +603,7 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
         developer_wallet=tool["wallet_address"],
         amount_usdc=price)
 		logger.info(f"[DEBUG] payment_payload: {raw_request.state.payment_payload}")
-        logger.info(f"[DEBUG] payment_requirements: {raw_request.state.payment_requirements}")
+		logger.info(f"[DEBUG] payment_requirements: {raw_request.state.payment_requirements}")
 
     # Mark execution started
     supabase.table("transactions").update({
