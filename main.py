@@ -14,6 +14,7 @@ import uuid
 import json
 import base64
 import logging
+import asyncio
 import httpx
 import resend
 from datetime import datetime, timedelta
@@ -273,6 +274,105 @@ async def send_usdc(recipient: str, amount_usdc: float) -> str:
         return tx_hash
 
 # ============================================================
+# REFUND WITH RETRY HELPER
+# ============================================================
+async def refund_with_retry(
+    buyer_wallet: str | None,
+    amount: float,
+    transaction_id: str,
+    tool_name: str,
+    reason: str,
+    max_attempts: int = 3,
+    delay_seconds: float = 2.0
+) -> str | None:
+    now = datetime.utcnow().isoformat()
+
+    if not buyer_wallet:
+        log("refund_skipped",
+            level="ERROR",
+            tool_name=tool_name,
+            transaction_id=transaction_id,
+            error="buyer_wallet is None — refund cannot be executed")
+        supabase.table("transactions").update({
+            "status":     "refund_failed",
+            "error":      f"Refund impossible: buyer wallet unknown. Reason: {reason}",
+            "updated_at": now
+        }).eq("transaction_id", transaction_id).execute()
+        await send_alert(
+            subject=f"[ReqCast] REFUND IMPOSSIBLE — buyer wallet unknown: {transaction_id}",
+            body=(
+                f"A refund could not be executed because the buyer wallet address is unknown.\n\n"
+                f"Transaction ID: {transaction_id}\n"
+                f"Tool:           {tool_name}\n"
+                f"Amount:         ${amount} USDC\n"
+                f"Reason:         {reason}\n\n"
+                f"Manual intervention required."
+            )
+        )
+        return None
+
+    supabase.table("transactions").update({
+        "status":     "refund_pending",
+        "updated_at": now
+    }).eq("transaction_id", transaction_id).execute()
+
+    last_error = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            refund_tx = await send_usdc(buyer_wallet, amount)
+            now = datetime.utcnow().isoformat()
+            supabase.table("transactions").update({
+                "status":         "refunded",
+                "refund_tx_hash": refund_tx,
+                "updated_at":     now
+            }).eq("transaction_id", transaction_id).execute()
+            log("refund_sent",
+                tool_name=tool_name,
+                transaction_id=transaction_id,
+                buyer_wallet=buyer_wallet,
+                amount_usdc=amount,
+                tx_hash=refund_tx,
+                error=reason)
+            return refund_tx
+        except Exception as e:
+            last_error = str(e)
+            log("refund_attempt_failed",
+                level="WARNING",
+                tool_name=tool_name,
+                transaction_id=transaction_id,
+                buyer_wallet=buyer_wallet,
+                error=f"Attempt {attempt}/{max_attempts}: {last_error}")
+            if attempt < max_attempts:
+                await asyncio.sleep(delay_seconds)
+
+    now = datetime.utcnow().isoformat()
+    supabase.table("transactions").update({
+        "status":     "refund_failed",
+        "error":      f"Refund failed after {max_attempts} attempts. Last error: {last_error}",
+        "updated_at": now
+    }).eq("transaction_id", transaction_id).execute()
+    log("refund_failed",
+        level="ERROR",
+        tool_name=tool_name,
+        transaction_id=transaction_id,
+        buyer_wallet=buyer_wallet,
+        error=f"All {max_attempts} refund attempts failed. Last: {last_error}")
+    await send_alert(
+        subject=f"[ReqCast] REFUND FAILED — manual action required: {transaction_id}",
+        body=(
+            f"All {max_attempts} refund attempts failed.\n\n"
+            f"Transaction ID: {transaction_id}\n"
+            f"Tool:           {tool_name}\n"
+            f"Buyer wallet:   {buyer_wallet}\n"
+            f"Amount:         ${amount} USDC\n"
+            f"Reason:         {reason}\n"
+            f"Last error:     {last_error}\n\n"
+            f"Manual refund required immediately."
+        )
+    )
+    return None
+
+# ============================================================
 # WALLET BALANCE HELPER
 # ============================================================
 async def get_wallet_usdc_balance() -> float | None:
@@ -484,14 +584,16 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
     developer_cut = round(price * 0.95, 6)
     reqcast_cut   = round(price * 0.05, 6)
 
-    # Write pending transaction with buyer wallet and network
+    # Write pending transaction
     supabase.table("transactions").insert({
-        "transaction_id": transaction_id,
-        "tool_name":      tool_name,
-        "status":         "pending",
-        "timestamp":      timestamp,
-        "buyer_wallet":   buyer_wallet,
-        "network":        ENVIRONMENT
+        "transaction_id":     transaction_id,
+        "tool_name":          tool_name,
+        "status":             "pending",
+        "timestamp":          timestamp,
+        "updated_at":         timestamp,
+        "buyer_wallet":       buyer_wallet,
+        "network":            ENVIRONMENT,
+        "execution_attempts": 0
     }).execute()
 
     log("payment_attempt",
@@ -500,6 +602,13 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
         buyer_wallet=buyer_wallet,
         developer_wallet=tool["wallet_address"],
         amount_usdc=price)
+
+    # Mark execution started
+    supabase.table("transactions").update({
+        "status":             "execution_started",
+        "execution_attempts": 1,
+        "updated_at":         datetime.utcnow().isoformat()
+    }).eq("transaction_id", transaction_id).execute()
 
     # Fire callback to developer tool
     try:
@@ -526,33 +635,11 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
 
     except httpx.TimeoutException:
         record_failure(tool_name)
-
-        refund_tx = None
-        if buyer_wallet:
-            try:
-                refund_tx = await send_usdc(buyer_wallet, price)
-                log("refund_sent",
-                    tool_name=tool_name,
-                    transaction_id=transaction_id,
-                    buyer_wallet=buyer_wallet,
-                    developer_wallet=tool["wallet_address"],
-                    amount_usdc=price,
-                    tx_hash=refund_tx,
-                    error="Tool timed out")
-            except Exception as e:
-                log("refund_failed",
-                    level="ERROR",
-                    tool_name=tool_name,
-                    transaction_id=transaction_id,
-                    buyer_wallet=buyer_wallet,
-                    error=str(e))
-
         supabase.table("transactions").update({
-            "status": "refunded" if refund_tx else "failed",
-            "error": "Tool timed out",
-            "refund_tx_hash": refund_tx
+            "status":     "failed",
+            "error":      "Tool timed out",
+            "updated_at": datetime.utcnow().isoformat()
         }).eq("transaction_id", transaction_id).execute()
-
         log("callback_timeout",
             level="ERROR",
             tool_name=tool_name,
@@ -560,7 +647,9 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
             buyer_wallet=buyer_wallet,
             developer_wallet=tool["wallet_address"],
             error="Tool timed out")
-
+        refund_tx = await refund_with_retry(
+            buyer_wallet, price, transaction_id, tool_name, "Tool timed out"
+        )
         raise HTTPException(
             status_code=502,
             detail=f"Tool '{tool_name}' timed out. Refund initiated." if refund_tx
@@ -569,33 +658,11 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
 
     except httpx.RequestError as e:
         record_failure(tool_name)
-
-        refund_tx = None
-        if buyer_wallet:
-            try:
-                refund_tx = await send_usdc(buyer_wallet, price)
-                log("refund_sent",
-                    tool_name=tool_name,
-                    transaction_id=transaction_id,
-                    buyer_wallet=buyer_wallet,
-                    developer_wallet=tool["wallet_address"],
-                    amount_usdc=price,
-                    tx_hash=refund_tx,
-                    error="Tool unreachable")
-            except Exception as re:
-                log("refund_failed",
-                    level="ERROR",
-                    tool_name=tool_name,
-                    transaction_id=transaction_id,
-                    buyer_wallet=buyer_wallet,
-                    error=str(re))
-
         supabase.table("transactions").update({
-            "status": "refunded" if refund_tx else "failed",
-            "error": str(e),
-            "refund_tx_hash": refund_tx
+            "status":     "failed",
+            "error":      str(e),
+            "updated_at": datetime.utcnow().isoformat()
         }).eq("transaction_id", transaction_id).execute()
-
         log("callback_unreachable",
             level="ERROR",
             tool_name=tool_name,
@@ -603,50 +670,29 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
             buyer_wallet=buyer_wallet,
             developer_wallet=tool["wallet_address"],
             error=str(e))
-
+        refund_tx = await refund_with_retry(
+            buyer_wallet, price, transaction_id, tool_name, "Tool unreachable"
+        )
         raise HTTPException(
             status_code=502,
             detail=f"Tool '{tool_name}' unreachable. Refund initiated." if refund_tx
             else f"Tool '{tool_name}' unreachable. Contact support with transaction ID: {transaction_id}"
         )
 
+    # Normalize callback result
     try:
         callback_result = tool_response.json()
     except ValueError:
-        callback_result = {
-            "raw_text": tool_response.text
-        }
+        callback_result = {"raw_text": tool_response.text}
 
     if not (200 <= tool_response.status_code < 300):
         record_failure(tool_name)
-
-        refund_tx = None
-        if buyer_wallet:
-            try:
-                refund_tx = await send_usdc(buyer_wallet, price)
-                log("refund_sent",
-                    tool_name=tool_name,
-                    transaction_id=transaction_id,
-                    buyer_wallet=buyer_wallet,
-                    developer_wallet=tool["wallet_address"],
-                    amount_usdc=price,
-                    tx_hash=refund_tx,
-                    error=f"Tool returned HTTP {tool_response.status_code}")
-            except Exception as e:
-                log("refund_failed",
-                    level="ERROR",
-                    tool_name=tool_name,
-                    transaction_id=transaction_id,
-                    buyer_wallet=buyer_wallet,
-                    error=str(e))
-
         supabase.table("transactions").update({
-            "status": "refunded" if refund_tx else "failed",
-            "error": f"Tool returned HTTP {tool_response.status_code}",
-            "refund_tx_hash": refund_tx,
-            "tool_result": callback_result
+            "status":      "failed",
+            "error":       f"Tool returned HTTP {tool_response.status_code}",
+            "tool_result": callback_result,
+            "updated_at":  datetime.utcnow().isoformat()
         }).eq("transaction_id", transaction_id).execute()
-
         log("callback_bad_status",
             level="ERROR",
             tool_name=tool_name,
@@ -655,24 +701,28 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
             developer_wallet=tool["wallet_address"],
             error=f"HTTP {tool_response.status_code}",
             meta={"tool_result": callback_result})
-
+        refund_tx = await refund_with_retry(
+            buyer_wallet, price, transaction_id, tool_name,
+            f"Tool returned HTTP {tool_response.status_code}"
+        )
         raise HTTPException(
             status_code=502,
             detail=f"Tool '{tool_name}' failed with HTTP {tool_response.status_code}. Refund initiated." if refund_tx
             else f"Tool '{tool_name}' failed with HTTP {tool_response.status_code}. Contact support with transaction ID: {transaction_id}"
         )
 
+    # Execution succeeded — send developer payout
     try:
         tx_hash = await send_usdc(tool["wallet_address"], developer_cut)
-
         supabase.table("transactions").update({
-            "status": "completed",
-            "price_usdc": price,
-            "developer_cut": developer_cut,
-            "reqcast_cut": reqcast_cut,
+            "status":           "completed",
+            "price_usdc":       price,
+            "developer_cut":    developer_cut,
+            "reqcast_cut":      reqcast_cut,
             "developer_wallet": tool["wallet_address"],
-            "payout_tx_hash": tx_hash,
-            "tool_result": callback_result
+            "payout_tx_hash":   tx_hash,
+            "tool_result":      callback_result,
+            "updated_at":       datetime.utcnow().isoformat()
         }).eq("transaction_id", transaction_id).execute()
 
     except Exception as e:
@@ -684,13 +734,12 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
             developer_wallet=tool["wallet_address"],
             error=str(e),
             meta={"tool_result": callback_result})
-
         supabase.table("transactions").update({
-            "status": "failed",
-            "error": f"Payout failed: {str(e)}",
-            "tool_result": callback_result
+            "status":      "failed",
+            "error":       f"Payout failed: {str(e)}",
+            "tool_result": callback_result,
+            "updated_at":  datetime.utcnow().isoformat()
         }).eq("transaction_id", transaction_id).execute()
-
         raise HTTPException(
             status_code=502,
             detail=f"Payout failed after callback success. Transaction ID: {transaction_id}"
@@ -709,15 +758,15 @@ async def pay(tool_name: str, request: PayRequest, raw_request: Request):
         "result": callback_result,
         "receipt": {
             "transaction_id": transaction_id,
-            "tool_name": tool_name,
-            "status": "completed",
-            "timestamp": timestamp,
-            "price_usdc": price,
-            "developer_cut": developer_cut,
-            "reqcast_cut": reqcast_cut,
+            "tool_name":      tool_name,
+            "status":         "completed",
+            "timestamp":      timestamp,
+            "price_usdc":     price,
+            "developer_cut":  developer_cut,
+            "reqcast_cut":    reqcast_cut,
             "developer_wallet": tool["wallet_address"],
             "payout_tx_hash": tx_hash,
-            "tool_result": callback_result
+            "tool_result":    callback_result
         }
     }
 
